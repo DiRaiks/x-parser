@@ -1,12 +1,13 @@
 # Setup Guide
 
-Complete installation and configuration guide for X Parser.
+Complete installation and configuration guide for X Parser with session-based parsing and manual AI analysis.
 
 ## Prerequisites
 
 - Node.js 18+ and yarn/npm
 - OpenAI API account and key
-- Twitter account (for session-based parsing)
+- Twitter account with valid session cookies
+- Basic understanding of browser developer tools
 
 ## Installation
 
@@ -49,8 +50,8 @@ yarn init-config
 
 This creates:
 
-- `config/app.json` - Application settings
-- `config/prompts.json` - AI prompts
+- `config/app.json` - Application settings (models, timeouts, limits)
+- `config/prompts.json` - AI analysis prompts (fully customizable)
 
 **Important**: These files are not tracked in git and contain your customizations.
 
@@ -67,13 +68,62 @@ yarn prisma generate
 yarn prisma studio
 ```
 
-### 5. Start Development Server
+### 5. Twitter Session Setup (Critical)
+
+Session-based parsing is required for full functionality:
+
+#### Method 1: Browser Developer Tools
+
+1. **Open Twitter** in your browser and log in
+2. **Open Developer Tools** (F12)
+3. **Go to Application tab → Cookies → https://x.com**
+4. **Copy these values**:
+   - `auth_token` (long string starting with numbers/letters)
+   - `ct0` (CSRF token, shorter alphanumeric string)
+5. **Keep these safe** - you'll enter them in the app settings
+
+#### Method 2: Network Tab
+
+1. **Open Twitter** and go to Developer Tools → Network tab
+2. **Navigate to any Twitter page** or refresh
+3. **Find any request** to Twitter API
+4. **Look at Request Headers** for:
+   - `Authorization: Bearer ...` (not needed, app has this)
+   - `Cookie:` header containing `auth_token=...` and `ct0=...`
+5. **Extract the values** after `auth_token=` and `ct0=`
+
+### 6. Start Development Server
 
 ```bash
 yarn dev
 ```
 
 Application available at: http://localhost:3000
+
+## Initial Configuration
+
+### 1. Open Settings in App
+
+Click the gear icon in the top-right corner.
+
+### 2. Enter Twitter Session Data
+
+- Paste `auth_token` value
+- Paste `ct0` (CSRF token) value
+- Save settings
+
+### 3. Test Tweet Parsing
+
+- Click "Add Tweet"
+- Paste any Twitter URL
+- Enable "Include comments analysis" for full thread parsing
+- Click "Add"
+
+### 4. Manual AI Analysis
+
+- After tweet is added, click "Analyze" button
+- AI will analyze tweet content and thread structure
+- Results include relevance, categories, sentiment analysis, and project impact
 
 ## Configuration
 
@@ -88,166 +138,252 @@ Application available at: http://localhost:3000
       "translation": 0.1,
       "summary": 0.5,
       "thread_analysis": 0.4
+    },
+    "max_tokens": {
+      "relevance": 500,
+      "translation": 1000,
+      "summary": 800,
+      "thread_analysis": 1000
     }
   },
   "parsing": {
     "max_tweets_per_fetch": 50,
     "fetch_interval_minutes": 5,
-    "max_retries": 3
+    "max_retries": 3,
+    "thread_parsing": {
+      "max_depth": 3,
+      "max_replies_per_level": 50,
+      "pagination_timeout": 30000
+    }
   },
   "analysis": {
     "default_language": "en",
-    "supported_languages": ["en", "ru"]
+    "supported_languages": ["en", "ru"],
+    "manual_analysis": true,
+    "auto_analysis": false
   }
 }
 ```
 
 ### AI Prompts (`config/prompts.json`)
 
-Customize AI prompts for:
+Customize AI prompts for different analysis types:
 
-- `relevance_checker` - Determines tweet relevance
-- `translator` - Language translation
-- `summarizer` - Tweet summarization
-- `thread_analyzer` - Thread analysis
+```json
+{
+  "relevance_checker": {
+    "system": "You are an expert in blockchain and cryptocurrency...",
+    "user_template": "Analyze this tweet for relevance: {content}"
+  },
+  "translator": {
+    "system": "You are a professional translator...",
+    "user_template": "Translate to {target_lang}: {content}"
+  },
+  "summarizer": {
+    "system": "You are an expert analyst...",
+    "user_template": "Analyze and summarize: {content}"
+  },
+  "thread_analyzer": {
+    "system": "You are a social media expert...",
+    "user_template": "Analyze this thread structure: {thread_data}"
+  }
+}
+```
 
-## Twitter Session Setup
+## Advanced Features
 
-For session-based parsing (recommended):
+### Thread Structure Analysis
 
-1. **Log into Twitter** in your browser
-2. **Open Developer Tools** (F12)
-3. **Navigate to Application → Cookies → https://x.com**
-4. **Copy values** for:
-   - `auth_token`
-   - `ct0` (CSRF token)
-5. **Enter in Settings** within the app
+The app now provides comprehensive thread analysis:
+
+- **Complete Comment Trees**: Recursive parsing of all replies
+- **Pagination Handling**: Automatic fetching of large comment threads
+- **Depth Analysis**: Shows conversation flow and engagement patterns
+- **Participant Tracking**: Identifies most active contributors
+- **Sentiment Distribution**: Analyzes community reactions
+
+### Manual AI Analysis Workflow
+
+1. **Add tweets** without automatic analysis (faster, saves tokens)
+2. **Review raw content** and thread structure
+3. **Run AI analysis** selectively on interesting tweets
+4. **Customize prompts** for specific analysis needs
+
+### Session Management
+
+- **Session Persistence**: Credentials saved locally in browser
+- **Automatic Validation**: App checks session validity
+- **Refresh Indicators**: Clear feedback when sessions expire
+- **Fallback Handling**: Graceful degradation when sessions fail
 
 ## Production Deployment
 
 ### Vercel (Recommended)
 
 1. **Connect repository** to Vercel
-2. **Set environment variables** in Vercel dashboard
-3. **Deploy** automatically
+2. **Set environment variables**:
+   ```
+   OPENAI_API_KEY=your-key
+   DATABASE_URL=your-postgres-url
+   ```
+3. **Configure build settings**:
+   ```
+   Build Command: yarn build
+   Output Directory: .next
+   ```
+4. **Deploy** automatically
 
 ### Docker
 
-```bash
-# Build image
-docker build -t x-parser .
+```dockerfile
+# Use in production
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN yarn install --frozen-lockfile
+COPY . .
+RUN yarn build
+EXPOSE 3000
+CMD ["yarn", "start"]
+```
 
-# Run container
+```bash
+# Build and run
+docker build -t x-parser .
 docker run -p 3000:3000 \
   -e OPENAI_API_KEY="your-key" \
+  -e DATABASE_URL="your-db-url" \
   x-parser
 ```
 
 ### Self-hosted
 
 ```bash
-# Build for production
+# Production build
 yarn build
 
 # Start production server
 yarn start
+
+# With PM2 (recommended)
+pm2 start yarn --name "x-parser" -- start
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-**OpenAI API Errors**
+**Session Authentication Fails**
 
-- Verify API key is valid
-- Check OpenAI account has credits
-- Ensure rate limits aren't exceeded
+- Check if Twitter session cookies are still valid
+- Try logging out and back into Twitter
+- Copy fresh `auth_token` and `ct0` values
+- Ensure no extra characters in copied values
 
-**Twitter Parsing Fails**
+**AI Analysis Errors**
 
-- Update session cookies (they expire)
-- Try different Twitter username
-- Check network connectivity
+- Verify OpenAI API key is valid and has credits
+- Check rate limits (both OpenAI and app-level)
+- Review custom prompts for syntax errors
+- Enable debug mode for detailed error logs
 
-**Database Issues**
+**Thread Parsing Issues**
 
-- Run `yarn prisma db push`
-- Check file permissions for SQLite
-- Verify DATABASE_URL format
+- Ensure "Include comments analysis" is enabled
+- Check if tweet has public replies
+- Verify session has access to view replies
+- Large threads may take time due to pagination
 
-**Configuration Errors**
+**Database Connection Problems**
 
-- Run `yarn init-config` again
-- Check JSON syntax in config files
-- Verify file permissions
+- Run `yarn prisma db push` to reset schema
+- Check file permissions for SQLite database
+- Verify DATABASE_URL format and accessibility
+- Clear Prisma cache: `yarn prisma generate`
 
-### Logs and Debugging
+**Configuration File Errors**
 
-Enable debug mode in AI analysis:
+- Re-run `yarn init-config` to restore defaults
+- Validate JSON syntax in config files
+- Check file permissions for config directory
+- Compare with example files in git
+
+### Performance Optimization
+
+**Large Thread Handling**
+
+- Set reasonable `max_depth` and `max_replies_per_level`
+- Use pagination timeouts to prevent hangs
+- Monitor memory usage with large datasets
+- Consider database indexing for better performance
+
+**OpenAI Token Usage**
+
+- Use manual analysis to control costs
+- Customize prompts to be more concise
+- Set appropriate `max_tokens` limits
+- Monitor usage through OpenAI dashboard
+
+### Debugging and Logs
+
+Enable detailed logging:
 
 ```json
+// In config/app.json
 {
-  "tweetId": "123",
-  "content": "tweet content",
-  "debug": true
-}
-```
-
-Check application logs:
-
-```bash
-# Development
-yarn dev
-
-# Production
-yarn start
-```
-
-## Advanced Configuration
-
-### Custom AI Models
-
-Edit `config/app.json`:
-
-```json
-{
-  "openai": {
-    "model": "gpt-4",
-    "temperatures": {
-      "relevance": 0.2
-    }
+  "debug": {
+    "enabled": true,
+    "level": "verbose",
+    "log_requests": true,
+    "log_responses": false
   }
 }
 ```
 
-### Database Migration
-
-Switch to PostgreSQL:
-
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/xparser"
-```
-
-Then run:
+Check different log levels:
 
 ```bash
-yarn prisma db push
+# Development with debug
+DEBUG=* yarn dev
+
+# Production logs
+tail -f logs/app.log
 ```
 
-### Rate Limiting
+### Recovery Procedures
 
-Configure in `config/app.json`:
+**Reset Configuration**
 
-```json
-{
-  "twitter": {
-    "rate_limit_delay_ms": 3000
-  },
-  "parsing": {
-    "request_timeout_ms": 30000
-  }
-}
+```bash
+# Backup current config
+cp config/app.json config/app.json.backup
+
+# Reset to defaults
+yarn init-config
+
+# Restore custom settings manually
 ```
+
+**Database Reset**
+
+```bash
+# Backup data
+yarn prisma db seed
+
+# Reset schema
+yarn prisma db push --force-reset
+
+# Restore data
+yarn prisma db restore
+```
+
+**Session Refresh**
+
+1. Clear browser Twitter cookies
+2. Log back into Twitter
+3. Copy fresh session tokens
+4. Update app settings
+5. Test with simple tweet
 
 ## Next Steps
 

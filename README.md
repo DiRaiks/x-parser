@@ -1,6 +1,6 @@
 # X Parser
 
-> AI-powered Twitter analysis tool for blockchain content with intelligent filtering and multi-language support
+> AI-powered Twitter analysis tool with session-based parsing, thread analysis, and intelligent categorization for blockchain content
 
 ![X Parser](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-green?style=for-the-badge&logo=openai)
@@ -8,12 +8,15 @@
 
 ## ✨ Features
 
-- 🤖 **AI Tweet Analysis** - OpenAI-powered relevance detection and categorization
-- 🌐 **Multi-language Support** - Automatic translation (English/Russian)
-- 🧵 **Thread Analysis** - Parse and analyze Twitter threads with replies
-- 📊 **Smart Filtering** - Filter by relevance, categories, or favorites
-- ⚙️ **Configurable** - Customizable prompts and settings
-- 💾 **Data Persistence** - SQLite database with Prisma ORM
+- 🔐 **Session-Based Parsing** - Use Twitter auth cookies for full access to tweets and comments
+- 🤖 **Manual AI Analysis** - Run AI analysis on-demand to save tokens and processing time
+- 🧵 **Complete Thread Analysis** - Parse entire comment trees with pagination support
+- 📊 **Thread Visualization** - Interactive display of comment hierarchies and thread statistics
+- 🎯 **Smart Sentiment Analysis** - Analyze community reactions and sentiment patterns
+- 🌐 **Multi-language Support** - Automatic translation and analysis (English/Russian)
+- 📈 **Project Impact Analysis** - Configurable analysis for any project or protocol
+- 💾 **Persistent Storage** - SQLite database with comprehensive tweet and thread data
+- ⚙️ **Configurable Prompts** - Customizable AI analysis prompts via JSON configuration
 
 ## 🚀 Quick Start
 
@@ -43,7 +46,15 @@ yarn prisma db push
 yarn prisma generate
 ```
 
-### 4. Run
+### 4. Configure Twitter Session
+
+1. Open Twitter in your browser and log in
+2. Open Developer Tools (F12) → Network tab
+3. Navigate to any Twitter page and find a request with cookies
+4. Copy `auth_token` and `ct0` values from cookies
+5. Go to Settings in the app and paste these values
+
+### 5. Run
 
 ```bash
 yarn dev
@@ -51,33 +62,63 @@ yarn dev
 
 Visit `http://localhost:3000` 🎉
 
+## 🔄 Workflow
+
+1. **Add Tweet**: Paste Twitter URL → automatic parsing with optional thread analysis
+2. **Manual Analysis**: Click "Analyze" button when ready to run AI analysis
+3. **Thread Exploration**: Expand thread structure to see comment hierarchies
+4. **Sentiment Review**: Check community reactions and sentiment distribution
+
+## 📊 Analysis Features
+
+### Thread Structure
+
+- **Complete Comment Trees**: Recursive parsing of all replies and nested comments
+- **Pagination Support**: Handles large threads with automatic cursor-based pagination
+- **Depth Analysis**: Shows maximum thread depth and reply patterns
+- **Participant Tracking**: Identifies top contributors and engagement patterns
+
+### AI Analysis
+
+- **Relevance Scoring**: Determines content relevance to blockchain/crypto topics
+- **Category Classification**: Automatically categorizes content (DeFi, NFT, Ethereum, etc.)
+- **Sentiment Analysis**: Analyzes overall sentiment and community reactions
+- **Project Impact Assessment**: Configurable analysis for any project or protocol
+- **Translation**: Automatic translation to target language with context preservation
+
+## 🔗 API Endpoints
+
+| Method   | Endpoint                      | Description                    |
+| -------- | ----------------------------- | ------------------------------ |
+| `GET`    | `/api/tweets`                 | List tweets with filtering     |
+| `POST`   | `/api/tweets`                 | Add new tweet                  |
+| `DELETE` | `/api/tweets/{id}`            | Delete tweet                   |
+| `POST`   | `/api/ai/analyze`             | Analyze tweet with AI (manual) |
+| `POST`   | `/api/parser/twitter-session` | Parse tweet with session auth  |
+| `POST`   | `/api/parser/timeline`        | Parse home timeline feed       |
+
 ## 📝 Configuration
 
 The app uses JSON configuration files (not tracked in git):
 
 - `config/app.json` - Application settings (AI models, timeouts, limits)
-- `config/prompts.json` - AI prompts for analysis (customizable)
+- `config/prompts.json` - AI prompts for analysis (fully customizable)
 
-See example files in `config/` folder for reference.
+Key configuration options:
 
-## 🔗 API Endpoints
-
-| Method   | Endpoint                      | Description                      |
-| -------- | ----------------------------- | -------------------------------- |
-| `GET`    | `/api/tweets`                 | List tweets with filtering       |
-| `POST`   | `/api/tweets`                 | Add new tweet                    |
-| `DELETE` | `/api/tweets/{id}`            | Delete tweet                     |
-| `POST`   | `/api/ai/analyze`             | Analyze tweet with AI            |
-| `POST`   | `/api/parser/timeline`        | Parse home timeline feed         |
-| `POST`   | `/api/parser/twitter-session` | Parse tweet with session cookies |
+- **AI Model Selection**: Choose between GPT models for different use cases
+- **Analysis Prompts**: Customize prompts for relevance, sentiment, and project impact analysis
+- **Thread Parsing**: Configure depth limits and pagination settings
+- **Session Management**: Twitter authentication configuration
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS, Framer Motion
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Database**: SQLite (dev), PostgreSQL (prod)
-- **AI**: OpenAI GPT-4o-mini
-- **State**: Zustand + React Query
+- **AI**: OpenAI GPT-4o-mini with configurable prompts
+- **State**: Zustand for local state management
+- **Parsing**: Session-based Twitter API access with Bearer token fallback
 
 ## 📚 Documentation
 
@@ -92,6 +133,8 @@ See example files in `config/` folder for reference.
 3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## 📄 License
 

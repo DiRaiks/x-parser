@@ -384,16 +384,16 @@ export default function TweetCard({
                       </span>
                     </div>
 
-                    {/* Lido Impact Analysis */}
-                    {aiComments.lido_impact && (
+                    {/* Project Impact Analysis */}
+                    {aiComments.project_impact && (
                       <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg">
                         <h5 className="text-sm font-semibold text-blue-900 mb-3 flex items-center">
                           <div className="w-5 h-5 bg-blue-600 rounded mr-2 flex items-center justify-center">
                             <span className="text-white text-xs font-bold">
-                              L
+                              P
                             </span>
                           </div>
-                          Lido Impact Analysis
+                          Project Impact Analysis
                           {hasThreadAnalysis && (
                             <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
                               Thread Analysis
@@ -404,10 +404,10 @@ export default function TweetCard({
                         <div className="space-y-3">
                           <div>
                             <h6 className="text-xs font-medium text-blue-800 mb-1">
-                              Relevance to Lido:
+                              Relevance to Project:
                             </h6>
                             <p className="text-xs text-gray-700">
-                              {aiComments.lido_impact.relevance_to_lido}
+                              {aiComments.project_impact.relevance_to_project}
                             </p>
                           </div>
 
@@ -416,22 +416,22 @@ export default function TweetCard({
                               Main Tweet Impact:
                             </h6>
                             <p className="text-xs text-gray-700">
-                              {aiComments.lido_impact.main_tweet_impact}
+                              {aiComments.project_impact.main_tweet_impact}
                             </p>
                           </div>
 
                           {hasThreadAnalysis &&
-                            aiComments.lido_impact.comments_impact &&
-                            aiComments.lido_impact.comments_impact !==
+                            aiComments.project_impact.comments_impact &&
+                            aiComments.project_impact.comments_impact !==
                               "not applicable for single tweet" &&
-                            aiComments.lido_impact.comments_impact !==
+                            aiComments.project_impact.comments_impact !==
                               "not applicable for single tweet" && (
                               <div>
                                 <h6 className="text-xs font-medium text-purple-800 mb-1">
                                   Comments Impact:
                                 </h6>
                                 <p className="text-xs text-gray-700">
-                                  {aiComments.lido_impact.comments_impact}
+                                  {aiComments.project_impact.comments_impact}
                                 </p>
                               </div>
                             )}
@@ -441,28 +441,28 @@ export default function TweetCard({
                               Overall Impact:
                             </h6>
                             <p className="text-xs text-gray-700">
-                              {aiComments.lido_impact.overall_impact}
+                              {aiComments.project_impact.overall_impact}
                             </p>
                           </div>
 
-                          {aiComments.lido_impact.opportunities && (
+                          {aiComments.project_impact.opportunities && (
                             <div>
                               <h6 className="text-xs font-medium text-green-800 mb-1">
                                 Opportunities:
                               </h6>
                               <p className="text-xs text-gray-700">
-                                {aiComments.lido_impact.opportunities}
+                                {aiComments.project_impact.opportunities}
                               </p>
                             </div>
                           )}
 
-                          {aiComments.lido_impact.threats && (
+                          {aiComments.project_impact.threats && (
                             <div>
                               <h6 className="text-xs font-medium text-red-800 mb-1">
                                 Threats:
                               </h6>
                               <p className="text-xs text-gray-700">
-                                {aiComments.lido_impact.threats}
+                                {aiComments.project_impact.threats}
                               </p>
                             </div>
                           )}

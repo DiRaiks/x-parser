@@ -122,8 +122,8 @@ export interface ThreadAnalysisResult {
   };
 }
 
-export interface LidoImpactAnalysis {
-  relevance_to_lido: string;
+export interface ProjectImpactAnalysis {
+  relevance_to_project: string;
   main_tweet_impact: string;
   comments_impact: string;
   overall_impact: string;
@@ -132,7 +132,7 @@ export interface LidoImpactAnalysis {
 
   // Enhanced analysis
   reply_chain_insights: string[];
-  community_sentiment_towards_lido: string;
+  community_sentiment: string;
   competitive_mentions: string[];
 }
 
@@ -141,7 +141,7 @@ export interface AISummaryResult {
   expert_comment?: string;
   expert_commentary?: string;
   impact_level: "low" | "medium" | "high";
-  lido_impact?: LidoImpactAnalysis;
+  project_impact?: ProjectImpactAnalysis;
   thread_analysis?: ThreadAnalysisResult;
 
   // New fields for enhanced analysis

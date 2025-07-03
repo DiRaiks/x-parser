@@ -1,6 +1,6 @@
 # API Reference
 
-Complete API documentation for X Parser endpoints.
+Complete API documentation for X Parser endpoints with session-based parsing and manual AI analysis.
 
 ## Base URL
 
@@ -10,7 +10,9 @@ http://localhost:3000/api
 
 ## Authentication
 
-Most endpoints don't require authentication. Session-based parsing requires Twitter cookies.
+- Most endpoints don't require authentication
+- Session-based parsing requires Twitter auth cookies (`auth_token` and `ct0`)
+- AI analysis is manual and on-demand
 
 ## Tweets API
 
@@ -48,6 +50,7 @@ GET /api/tweets?filter={filter}&page={page}&limit={limit}
       "translation": "Translated content...",
       "summary": "Brief summary...",
       "aiComments": "{\"expert_comment\": \"...\"}",
+      "repliesData": "{\"replies\": [...], \"threadStructure\": {...}}",
       "isFavorite": false,
       "isProcessed": true,
       "savedAt": "2024-01-01T00:00:00Z"
@@ -58,40 +61,6 @@ GET /api/tweets?filter={filter}&page={page}&limit={limit}
     "limit": 20,
     "total": 156,
     "pages": 8
-  }
-}
-```
-
-### Create Tweet
-
-```http
-POST /api/tweets
-```
-
-**Body:**
-
-```json
-{
-  "tweetId": "1234567890",
-  "authorUsername": "vitalik",
-  "authorName": "Vitalik Buterin",
-  "content": "Tweet content...",
-  "createdAt": "2024-01-01T00:00:00Z",
-  "url": "https://x.com/vitalik/status/1234567890",
-  "likes": 1250,
-  "retweets": 340,
-  "replies": 89,
-  "repliesData": "[{\"content\": \"Reply...\"}]"
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "tweet": {
-    /* Tweet object */
   }
 }
 ```
@@ -111,7 +80,7 @@ DELETE /api/tweets/{id}
 }
 ```
 
-## AI Analysis API
+## AI Analysis API (Manual)
 
 ### Analyze Tweet
 
@@ -125,15 +94,28 @@ POST /api/ai/analyze
 {
   "tweetId": "1234567890",
   "content": "Tweet content to analyze",
-  "replies": [
-    {
-      "authorUsername": "user1",
-      "content": "Reply content...",
-      "likes": 25
+  "threadStructure": {
+    "totalReplies": 25,
+    "maxDepth": 3,
+    "participants": 15,
+    "replies": [
+      {
+        "id": "reply_id",
+        "authorUsername": "user1",
+        "content": "Reply content...",
+        "likes": 25,
+        "replies": [...]
+      }
+    ],
+    "replyTree": {
+      "reply_id": {
+        "content": "Reply content...",
+        "author": "user1",
+        "children": ["nested_reply_id"]
+      }
     }
-  ],
-  "targetLang": "en",
-  "debug": false
+  },
+  "targetLang": "en"
 }
 ```
 
@@ -157,28 +139,107 @@ POST /api/ai/analyze
       "summary": "Brief summary...",
       "expert_comment": "Expert analysis...",
       "impact_level": "high",
-      "lido_impact": {
-        "relevance_to_lido": "High relevance...",
+      "project_impact": {
+        "relevance_to_project": "High relevance...",
         "opportunities": "Could improve...",
         "threats": "Potential risks..."
       }
     },
     "thread_analysis": {
-      "total_replies": 15,
+      "total_replies": 25,
       "sentiment_breakdown": {
-        "positive": 8,
-        "negative": 2,
-        "neutral": 5
+        "positive": 15,
+        "negative": 3,
+        "neutral": 7
       },
       "community_pulse": "positive",
-      "key_topics": ["staking", "rewards"],
-      "engagement_level": "high"
+      "key_topics": ["staking", "rewards", "decentralization"],
+      "engagement_level": "high",
+      "top_participants": [
+        {
+          "username": "user1",
+          "reply_count": 3,
+          "engagement_score": 85
+        }
+      ]
     }
   }
 }
 ```
 
 ## Parser API
+
+### Parse Tweet with Session
+
+```http
+POST /api/parser/twitter-session
+```
+
+**Body:**
+
+```json
+{
+  "url": "https://x.com/vitalik/status/1234567890",
+  "authToken": "session_auth_token",
+  "csrfToken": "csrf_token_ct0",
+  "includeReplies": true,
+  "maxDepth": 3,
+  "maxRepliesPerLevel": 50
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "tweet": {
+    "tweetId": "1234567890",
+    "authorUsername": "vitalik",
+    "authorName": "Vitalik Buterin",
+    "content": "Tweet content...",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "url": "https://x.com/vitalik/status/1234567890",
+    "likes": 1250,
+    "retweets": 340,
+    "replies": 89,
+    "repliesData": "{\"replies\": [...], \"threadStructure\": {...}}"
+  },
+  "threadStructure": {
+    "totalReplies": 89,
+    "maxDepth": 3,
+    "participants": 45,
+    "replies": [
+      {
+        "id": "reply_id",
+        "authorUsername": "user1",
+        "authorName": "User One",
+        "content": "Great point about staking!",
+        "likes": 25,
+        "retweets": 5,
+        "replies": 2,
+        "createdAt": "2024-01-01T01:00:00Z",
+        "replies": [...]
+      }
+    ],
+    "replyTree": {
+      "reply_id": {
+        "content": "Great point about staking!",
+        "author": "user1",
+        "likes": 25,
+        "children": ["nested_reply_id"],
+        "depth": 1
+      }
+    }
+  },
+  "threadAnalysis": {
+    "totalReplies": 89,
+    "maxDepth": 3,
+    "uniqueParticipants": 45,
+    "engagementScore": 0.78
+  }
+}
+```
 
 ### Parse Home Timeline
 
@@ -204,115 +265,42 @@ POST /api/parser/timeline
   "success": true,
   "tweets": [
     {
-      "tweetId": "1234567890",
-      "authorUsername": "vitalik",
-      "content": "Tweet content...",
-      "likes": 125,
-      "retweets": 34,
-      "replies": 8,
-      "createdAt": "2024-01-01T00:00:00Z",
-      "url": "https://x.com/vitalik/status/1234567890",
-      "source": "timeline_html_parsing"
+      /* Tweet objects */
     }
   ],
-  "count": 45,
-  "method": "timeline_html_parsing",
-  "source": "x.com_home_page",
-  "message": "Successfully fetched 45 tweets from home timeline"
-}
-```
-
-### Parse with Session
-
-```http
-POST /api/parser/twitter-session
-```
-
-**Body:**
-
-```json
-{
-  "url": "https://x.com/vitalik/status/1234567890",
-  "authToken": "session_auth_token",
-  "csrfToken": "csrf_token_ct0",
-  "includeReplies": true
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "tweet": {
-    "tweetId": "1234567890",
-    "authorUsername": "vitalik",
-    "authorName": "Vitalik Buterin",
-    "content": "Tweet content...",
-    "createdAt": "2024-01-01T00:00:00Z",
-    "url": "https://x.com/vitalik/status/1234567890",
-    "likes": 1250,
-    "retweets": 340,
-    "replies": 89,
-    "source": "twitter_session"
-  },
-  "replies": [
-    {
-      "tweetId": "1234567891",
-      "authorUsername": "user1",
-      "authorName": "User One",
-      "content": "Reply content...",
-      "likes": 25,
-      "retweets": 3,
-      "replies": 1,
-      "createdAt": "2024-01-01T00:01:00Z",
-      "source": "twitter_session_reply"
-    }
-  ],
-  "repliesCount": 12
+  "count": 50,
+  "hasMore": true,
+  "cursor": "next_page_cursor"
 }
 ```
 
 ## Error Responses
 
-All endpoints return errors in this format:
-
-```json
-{
-  "error": "Error message",
-  "message": "Detailed description",
-  "suggestion": "How to fix this issue",
-  "needsLogin": false
-}
-```
-
-### Common Error Codes
-
-- `400` - Bad Request (missing parameters)
-- `401` - Unauthorized (invalid session)
-- `403` - Forbidden (session expired)
-- `404` - Not Found (tweet/user not found)
-- `429` - Too Many Requests (rate limited)
-- `500` - Internal Server Error
-
-### Session Errors
+All endpoints may return error responses:
 
 ```json
 {
   "success": false,
-  "error": "Session expired or invalid",
+  "error": "Error description",
   "needsLogin": true,
-  "suggestion": "Please update your session cookies in Settings"
+  "suggestion": "Please check your Twitter session credentials"
 }
 ```
 
+## Common Error Codes
+
+- `400` - Bad Request (invalid parameters)
+- `401` - Unauthorized (session expired)
+- `403` - Forbidden (rate limited or access denied)
+- `404` - Not Found (tweet not found)
+- `429` - Too Many Requests (rate limit exceeded)
+- `500` - Internal Server Error
+
 ## Rate Limits
 
-- **AI Analysis**: 60 requests/minute
-- **Twitter Parsing**: 300 requests/15 minutes
-- **General API**: 1000 requests/hour
-
-Rate limits are configurable in `config/app.json`.
+- Twitter API: ~150 requests per 15 minutes per endpoint
+- OpenAI API: Depends on your plan
+- Session-based parsing: Subject to Twitter's rate limits
 
 ## Data Models
 
@@ -320,54 +308,83 @@ Rate limits are configurable in `config/app.json`.
 
 ```typescript
 interface Tweet {
-  id: string; // UUID
-  tweetId: string; // Twitter ID
-  authorUsername: string; // @username
-  authorName: string; // Display name
-  content: string; // Tweet text
-  createdAt: Date; // Tweet date
-  url: string; // Tweet URL
-  likes: number; // Like count
-  retweets: number; // Retweet count
-  replies: number; // Reply count
-
-  // AI Analysis
-  isRelevant: boolean; // AI relevance
-  relevanceScore?: number; // 0-1 score
+  id: string;
+  tweetId: string;
+  authorUsername: string;
+  authorName: string;
+  content: string;
+  createdAt: string;
+  url: string;
+  likes: number;
+  retweets: number;
+  replies: number;
+  isRelevant?: boolean;
+  relevanceScore?: number;
   categories?: string; // JSON array
-  translation?: string; // Translated text
-  summary?: string; // AI summary
-  aiComments?: string; // JSON analysis
-  repliesData?: string; // JSON replies
-
-  // App metadata
-  savedAt: Date; // Save timestamp
-  isFavorite: boolean; // User favorite
-  isProcessed: boolean; // AI processed
+  translation?: string;
+  summary?: string;
+  aiComments?: string; // JSON object
+  repliesData?: string; // JSON object with replies and threadStructure
+  isFavorite: boolean;
+  isProcessed: boolean;
+  savedAt: string;
 }
 ```
 
-### Analysis Result
+### Thread Structure
 
 ```typescript
-interface AIAnalysisResult {
-  relevance_score: number; // 0-1
-  is_relevant: boolean; // True/false
-  categories: string[]; // ["ethereum", "defi"]
-  reason: string; // Explanation
+interface ThreadStructure {
+  totalReplies: number;
+  maxDepth: number;
+  participants: number;
+  replies: Reply[];
+  replyTree: Record<string, ReplyNode>;
 }
 
-interface AISummaryResult {
-  summary: string; // Brief summary
-  expert_comment: string; // Expert analysis
-  impact_level: "low" | "medium" | "high";
-  lido_impact?: {
-    // Protocol analysis
-    relevance_to_lido: string;
-    opportunities: string;
-    threats: string;
+interface Reply {
+  id: string;
+  authorUsername: string;
+  authorName: string;
+  content: string;
+  likes: number;
+  retweets: number;
+  replies: number;
+  createdAt: string;
+  replies?: Reply[]; // Nested replies
+}
+
+interface ReplyNode {
+  content: string;
+  author: string;
+  likes: number;
+  children: string[];
+  depth: number;
+}
+```
+
+### AI Analysis Result
+
+```typescript
+interface AnalysisResult {
+  relevance: {
+    relevance_score: number;
+    is_relevant: boolean;
+    categories: string[];
+    reason: string;
   };
-  thread_analysis?: {
+  translation: string;
+  summary: {
+    summary: string;
+    expert_comment: string;
+    impact_level: string;
+    project_impact: {
+      relevance_to_project: string;
+      opportunities: string;
+      threats: string;
+    };
+  };
+  thread_analysis: {
     total_replies: number;
     sentiment_breakdown: {
       positive: number;
@@ -377,6 +394,11 @@ interface AISummaryResult {
     community_pulse: string;
     key_topics: string[];
     engagement_level: string;
+    top_participants: Array<{
+      username: string;
+      reply_count: number;
+      engagement_score: number;
+    }>;
   };
 }
 ```

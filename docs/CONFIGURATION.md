@@ -1,20 +1,20 @@
 # Configuration Guide
 
-Complete configuration reference for X Parser.
+Complete configuration reference for X Parser with session-based parsing and manual AI analysis.
 
 ## Overview
 
-X Parser uses JSON configuration files to customize AI behavior, parsing settings, and application features. Configuration files are stored in the `config/` directory and are not tracked in git.
+X Parser uses JSON configuration files to customize AI behavior, parsing settings, session management, and application features. Configuration files are stored in the `config/` directory and are not tracked in git for privacy and customization.
 
 ## Configuration Files
 
 ### `config/app.json`
 
-Main application settings including AI models, parsing limits, and behavior.
+Main application settings including AI models, parsing limits, thread analysis, and session management.
 
 ### `config/prompts.json`
 
-AI prompts for different analysis tasks - fully customizable.
+AI prompts for different analysis tasks - fully customizable for your specific use case.
 
 ## App Configuration (`config/app.json`)
 
@@ -31,35 +31,56 @@ AI prompts for different analysis tasks - fully customizable.
       "thread_analysis": 0.4
     },
     "max_tokens": {
-      "relevance": 150,
-      "translation": 500,
-      "summary": 300,
-      "thread_analysis": 400
-    }
+      "relevance": 500,
+      "translation": 1000,
+      "summary": 800,
+      "thread_analysis": 1000
+    },
+    "timeout_ms": 60000
   },
   "parsing": {
     "max_tweets_per_fetch": 50,
     "fetch_interval_minutes": 5,
     "max_retries": 3,
     "request_timeout_ms": 30000,
-    "rate_limit_delay_ms": 3000
+    "rate_limit_delay_ms": 3000,
+    "thread_parsing": {
+      "max_depth": 3,
+      "max_replies_per_level": 50,
+      "pagination_timeout": 30000,
+      "include_nested_replies": true
+    }
   },
   "analysis": {
     "default_language": "en",
     "supported_languages": ["en", "ru"],
-    "auto_translate": true,
-    "relevance_threshold": 0.6
+    "manual_analysis": true,
+    "auto_analysis": false,
+    "relevance_threshold": 0.6,
+    "sentiment_analysis": true
+  },
+  "session": {
+    "validation_interval_ms": 300000,
+    "retry_on_auth_fail": true,
+    "fallback_to_bearer": true,
+    "session_timeout_hours": 24
   },
   "database": {
     "auto_cleanup_days": 30,
-    "backup_interval_hours": 24
+    "backup_interval_hours": 24,
+    "thread_data_retention_days": 60
+  },
+  "ui": {
+    "default_thread_collapsed": false,
+    "show_debug_info": false,
+    "auto_refresh_interval_ms": 30000
   }
 }
 ```
 
 ### OpenAI Settings
 
-Configure AI model behavior:
+Configure AI model behavior and performance:
 
 ```json
 {
@@ -72,25 +93,26 @@ Configure AI model behavior:
       "thread_analysis": 0.4 // Balanced = analytical thread insights
     },
     "max_tokens": {
-      "relevance": 150, // Brief relevance analysis
-      "translation": 500, // Full translation space
-      "summary": 300, // Concise summaries
-      "thread_analysis": 400 // Detailed thread analysis
-    }
+      "relevance": 500, // Detailed relevance analysis
+      "translation": 1000, // Full translation with context
+      "summary": 800, // Comprehensive summaries
+      "thread_analysis": 1000 // Detailed thread analysis
+    },
+    "timeout_ms": 60000 // 60 second timeout for AI requests
   }
 }
 ```
 
 **Available Models:**
 
-- `gpt-4o-mini` (recommended) - Fast and cost-effective
-- `gpt-4o` - More capable but slower/expensive
-- `gpt-4-turbo` - Balanced performance
-- `gpt-3.5-turbo` - Budget option
+- `gpt-4o-mini` (recommended) - Fast, cost-effective, excellent for analysis
+- `gpt-4o` - Most capable, best for complex analysis
+- `gpt-4-turbo` - Balanced performance and speed
+- `gpt-3.5-turbo` - Budget option, limited analysis depth
 
 ### Parsing Settings
 
-Control parsing behavior and limits:
+Control Twitter parsing behavior and thread analysis:
 
 ```json
 {
@@ -99,40 +121,91 @@ Control parsing behavior and limits:
     "fetch_interval_minutes": 5, // Automatic fetch interval
     "max_retries": 3, // Retry failed requests
     "request_timeout_ms": 30000, // Request timeout (30s)
-    "rate_limit_delay_ms": 3000 // Delay between requests (3s)
+    "rate_limit_delay_ms": 3000, // Delay between requests (3s)
+    "thread_parsing": {
+      "max_depth": 3, // Maximum reply depth to parse
+      "max_replies_per_level": 50, // Max replies per depth level
+      "pagination_timeout": 30000, // Timeout for pagination requests
+      "include_nested_replies": true // Parse nested reply chains
+    }
   }
 }
 ```
 
+**Thread Parsing Options:**
+
+- `max_depth`: Controls how deep the reply chain goes (1-5)
+- `max_replies_per_level`: Limits replies at each level (10-100)
+- `pagination_timeout`: Prevents hanging on large threads
+- `include_nested_replies`: Whether to parse reply-to-reply chains
+
 ### Analysis Settings
 
-Configure AI analysis features:
+Configure AI analysis features and behavior:
 
 ```json
 {
   "analysis": {
     "default_language": "en", // Default target language
     "supported_languages": ["en", "ru"], // Available languages
-    "auto_translate": true, // Auto-translate non-English
-    "relevance_threshold": 0.6 // Minimum relevance score
+    "manual_analysis": true, // Manual analysis mode
+    "auto_analysis": false, // Disable automatic analysis
+    "relevance_threshold": 0.6, // Minimum relevance score
+    "sentiment_analysis": true // Enable sentiment analysis
   }
 }
 ```
+
+**Manual vs Automatic Analysis:**
+
+- `manual_analysis: true` - User clicks "Analyze" button (recommended)
+- `auto_analysis: true` - Automatic analysis on tweet addition (expensive)
 
 **Language Codes:**
 
 - `en` - English
 - `ru` - Russian
+- Add more as needed in prompts
+
+### Session Management
+
+Configure Twitter session handling:
+
+```json
+{
+  "session": {
+    "validation_interval_ms": 300000, // Check session every 5 minutes
+    "retry_on_auth_fail": true, // Retry with fresh session on failure
+    "fallback_to_bearer": true, // Use Bearer token if session fails
+    "session_timeout_hours": 24 // Assume session expires after 24h
+  }
+}
+```
 
 ### Database Settings
 
-Database management options:
+Database management and retention:
 
 ```json
 {
   "database": {
     "auto_cleanup_days": 30, // Auto-delete old tweets
-    "backup_interval_hours": 24 // Database backup frequency
+    "backup_interval_hours": 24, // Database backup frequency
+    "thread_data_retention_days": 60 // Keep thread data longer
+  }
+}
+```
+
+### UI Settings
+
+User interface behavior:
+
+```json
+{
+  "ui": {
+    "default_thread_collapsed": false, // Show thread structure by default
+    "show_debug_info": false, // Hide debug information
+    "auto_refresh_interval_ms": 30000 // Auto-refresh tweets every 30s
   }
 }
 ```
@@ -144,20 +217,20 @@ Database management options:
 ```json
 {
   "relevance_checker": {
-    "system": "You are an expert in blockchain and cryptocurrency. Analyze tweets for relevance to Ethereum ecosystem, DeFi, and Lido protocol.",
-    "user": "Analyze this tweet for relevance:\n\nContent: {content}\n\nRespond with JSON: {\"relevance_score\": 0.0-1.0, \"is_relevant\": boolean, \"categories\": [\"category1\"], \"reason\": \"explanation\"}"
+    "system": "You are an expert in blockchain, cryptocurrency, and DeFi protocols. Analyze tweets for relevance to Ethereum ecosystem, DeFi protocols, and staking. Focus on technical developments, market implications, and protocol updates.",
+    "user": "Analyze this tweet for relevance to blockchain/crypto/DeFi:\n\nContent: {content}\nAuthor: {author}\nEngagement: {likes} likes, {retweets} retweets\n\nRespond with JSON:\n{\n  \"relevance_score\": 0.0-1.0,\n  \"is_relevant\": boolean,\n  \"categories\": [\"ethereum\", \"defi\", \"staking\", \"nft\", \"blockchain\"],\n  \"reason\": \"detailed explanation\"\n}"
   },
   "translator": {
-    "system": "You are a professional translator specializing in cryptocurrency and blockchain terminology.",
-    "user": "Translate this tweet to {target_language}. Preserve technical terms and context:\n\n{content}"
+    "system": "You are a professional translator specializing in cryptocurrency, blockchain, and financial terminology. Maintain technical accuracy while making content accessible.",
+    "user": "Translate this tweet to {target_language}. Preserve technical terms, hashtags, and mentions. Maintain the original tone and context:\n\n{content}"
   },
   "summarizer": {
-    "system": "You are a blockchain expert providing analysis for the Lido community. Focus on protocol implications and opportunities.",
-    "user": "Analyze this tweet and replies. Provide expert commentary on implications for Lido protocol:\n\nTweet: {content}\n\nReplies: {replies}\n\nRespond with JSON containing summary, expert_comment, impact_level, and lido_impact analysis."
+    "system": "You are a blockchain expert providing analysis for the crypto community. Focus on protocol implications, market opportunities, and strategic insights. Provide actionable intelligence.",
+    "user": "Analyze this tweet and its discussion context:\n\nTweet: {content}\nAuthor: {author}\nThread Data: {thread_data}\n\nProvide comprehensive analysis in JSON format:\n{\n  \"summary\": \"concise summary\",\n  \"expert_comment\": \"detailed expert analysis\",\n  \"impact_level\": \"low/medium/high\",\n  \"project_impact\": {\n    \"relevance_to_project\": \"how this relates to your project\",\n    \"opportunities\": \"potential opportunities\",\n    \"threats\": \"potential risks or challenges\"\n  }\n}"
   },
   "thread_analyzer": {
-    "system": "You are a social media analyst specializing in cryptocurrency communities. Analyze discussion threads for sentiment and key insights.",
-    "user": "Analyze this Twitter thread discussion:\n\nOriginal: {content}\n\nReplies: {replies}\n\nProvide JSON analysis with total_replies, sentiment_breakdown, community_pulse, key_topics, and engagement_level."
+    "system": "You are a social media analyst specializing in cryptocurrency communities. Analyze discussion threads for sentiment patterns, key insights, and community dynamics.",
+    "user": "Analyze this Twitter thread discussion:\n\nOriginal Tweet: {content}\nThread Structure: {thread_structure}\nTotal Replies: {total_replies}\n\nProvide detailed analysis in JSON format:\n{\n  \"total_replies\": number,\n  \"sentiment_breakdown\": {\n    \"positive\": number,\n    \"negative\": number,\n    \"neutral\": number\n  },\n  \"community_pulse\": \"overall sentiment description\",\n  \"key_topics\": [\"topic1\", \"topic2\"],\n  \"engagement_level\": \"low/medium/high\",\n  \"top_participants\": [\n    {\n      \"username\": \"user\",\n      \"reply_count\": number,\n      \"engagement_score\": number\n    }\n  ]\n}"
   }
 }
 ```
@@ -171,35 +244,37 @@ Controls how AI determines tweet relevance:
 ```json
 {
   "relevance_checker": {
-    "system": "Custom system prompt defining expertise area...",
-    "user": "Analysis request format with {content} placeholder..."
+    "system": "Define your expertise area and focus...",
+    "user": "Analysis request format with placeholders..."
   }
 }
 ```
 
-**Placeholders:**
+**Available Placeholders:**
 
 - `{content}` - Tweet content
-- `{author}` - Tweet author
-- `{engagement}` - Like/retweet counts
+- `{author}` - Tweet author username
+- `{likes}` - Like count
+- `{retweets}` - Retweet count
+- `{replies}` - Reply count
 
 #### Translator
 
-Controls translation behavior:
+Controls translation style and accuracy:
 
 ```json
 {
   "translator": {
-    "system": "Define translation style and expertise...",
-    "user": "Translation request with {content} and {target_language}..."
+    "system": "Define translation expertise and style...",
+    "user": "Translation request with context preservation..."
   }
 }
 ```
 
-**Placeholders:**
+**Available Placeholders:**
 
-- `{content}` - Text to translate
-- `{target_language}` - Target language name
+- `{content}` - Content to translate
+- `{target_language}` - Target language (en, ru, etc.)
 - `{source_language}` - Detected source language
 
 #### Summarizer
@@ -209,18 +284,19 @@ Controls tweet and thread summarization:
 ```json
 {
   "summarizer": {
-    "system": "Define analysis perspective and goals...",
-    "user": "Analysis request with {content} and {replies}..."
+    "system": "Define analysis expertise and focus areas...",
+    "user": "Analysis request with comprehensive context..."
   }
 }
 ```
 
-**Placeholders:**
+**Available Placeholders:**
 
-- `{content}` - Main tweet content
-- `{replies}` - Formatted replies list
-- `{author}` - Tweet author info
-- `{engagement}` - Engagement metrics
+- `{content}` - Tweet content
+- `{author}` - Tweet author
+- `{thread_data}` - Full thread structure JSON
+- `{likes}` - Engagement metrics
+- `{retweets}` - Engagement metrics
 
 #### Thread Analyzer
 
@@ -229,191 +305,149 @@ Controls thread discussion analysis:
 ```json
 {
   "thread_analyzer": {
-    "system": "Define community analysis approach...",
-    "user": "Thread analysis request with placeholders..."
+    "system": "Define social media analysis expertise...",
+    "user": "Thread analysis request with structure data..."
   }
 }
 ```
 
-**Placeholders:**
+**Available Placeholders:**
 
-- `{content}` - Original tweet
-- `{replies}` - All thread replies
-- `{participants}` - Unique participants
-- `{total_engagement}` - Total thread engagement
+- `{content}` - Original tweet content
+- `{thread_structure}` - Full thread structure
+- `{total_replies}` - Total reply count
+- `{participants}` - Number of unique participants
 
-## Environment Variables
+## Advanced Configuration
 
-Required environment configuration:
+### Performance Tuning
 
-```env
-# Required
-OPENAI_API_KEY="sk-..." # OpenAI API key
+For high-volume usage:
 
-# Database
-DATABASE_URL="file:./dev.db" # SQLite (dev) or PostgreSQL (prod)
-
-# Optional
-NEXT_PUBLIC_APP_URL="http://localhost:3000" # App URL for absolute links
+```json
+{
+  "openai": {
+    "parallel_requests": 3,
+    "request_batching": true,
+    "cache_responses": true
+  },
+  "parsing": {
+    "concurrent_threads": 2,
+    "batch_size": 10,
+    "memory_limit_mb": 512
+  }
+}
 ```
 
-## Configuration Examples
+### Debug Settings
 
-### High-Volume Analysis
+For troubleshooting:
 
-For processing many tweets with fast analysis:
+```json
+{
+  "debug": {
+    "enabled": true,
+    "level": "verbose",
+    "log_requests": true,
+    "log_responses": false,
+    "save_raw_data": true
+  }
+}
+```
+
+### Security Settings
+
+For production deployment:
+
+```json
+{
+  "security": {
+    "rate_limiting": true,
+    "request_validation": true,
+    "sanitize_inputs": true,
+    "max_request_size_mb": 10
+  }
+}
+```
+
+## Configuration Validation
+
+The app validates configuration on startup:
+
+- **JSON Syntax**: Valid JSON format
+- **Required Fields**: All necessary fields present
+- **Value Ranges**: Numeric values within acceptable ranges
+- **Model Availability**: OpenAI model exists and accessible
+- **Language Codes**: Supported language combinations
+
+## Environment-Specific Configs
+
+### Development
+
+```json
+{
+  "debug": { "enabled": true },
+  "openai": { "timeout_ms": 120000 },
+  "ui": { "show_debug_info": true }
+}
+```
+
+### Production
+
+```json
+{
+  "debug": { "enabled": false },
+  "openai": { "timeout_ms": 30000 },
+  "security": { "rate_limiting": true }
+}
+```
+
+## Migration and Updates
+
+When updating the app:
+
+1. **Backup** current config files
+2. **Run** `yarn init-config` to get new defaults
+3. **Merge** your custom settings
+4. **Test** with sample tweets
+5. **Deploy** updated configuration
+
+## Common Configuration Patterns
+
+### Cost Optimization
 
 ```json
 {
   "openai": {
     "model": "gpt-4o-mini",
-    "temperatures": {
-      "relevance": 0.2,
-      "summary": 0.3
-    },
-    "max_tokens": {
-      "relevance": 100,
-      "summary": 200
-    }
+    "max_tokens": { "relevance": 200 }
   },
-  "parsing": {
-    "max_tweets_per_fetch": 100,
-    "rate_limit_delay_ms": 1000
-  }
+  "analysis": { "manual_analysis": true }
 }
 ```
 
-### Detailed Analysis
-
-For thorough analysis with detailed insights:
+### High Accuracy
 
 ```json
 {
   "openai": {
     "model": "gpt-4o",
-    "temperatures": {
-      "summary": 0.7,
-      "thread_analysis": 0.6
-    },
-    "max_tokens": {
-      "summary": 500,
-      "thread_analysis": 600
-    }
+    "temperatures": { "relevance": 0.1 }
   },
-  "analysis": {
-    "relevance_threshold": 0.4
-  }
+  "parsing": { "max_retries": 5 }
 }
 ```
 
-### Multi-language Setup
-
-For international content analysis:
+### Large Scale
 
 ```json
 {
-  "analysis": {
-    "default_language": "en",
-    "supported_languages": ["en", "ru", "es", "fr", "de", "zh"],
-    "auto_translate": true
-  }
+  "parsing": {
+    "thread_parsing": {
+      "max_depth": 5,
+      "max_replies_per_level": 100
+    }
+  },
+  "database": { "auto_cleanup_days": 7 }
 }
 ```
-
-## Best Practices
-
-### Model Selection
-
-- **Development**: Use `gpt-4o-mini` for cost efficiency
-- **Production**: Use `gpt-4o` for better analysis quality
-- **High-volume**: Use `gpt-3.5-turbo` for speed
-
-### Temperature Settings
-
-- **Relevance (0.1-0.3)**: Low for consistent categorization
-- **Translation (0.1-0.2)**: Low for accurate translations
-- **Summary (0.4-0.7)**: Medium for balanced creativity
-- **Analysis (0.3-0.6)**: Medium for insightful commentary
-
-### Rate Limiting
-
-- **Twitter Parsing**: 2-5 seconds between requests
-- **AI Analysis**: Respect OpenAI rate limits
-- **Database**: Enable auto-cleanup for large datasets
-
-### Prompt Engineering
-
-- Use specific domain expertise in system prompts
-- Include clear output format requirements
-- Test prompts with sample data before production
-- Keep prompts focused and concise
-
-## Troubleshooting
-
-### Configuration Issues
-
-**Invalid JSON syntax:**
-
-```bash
-# Validate JSON
-cat config/app.json | jq .
-```
-
-**Missing required fields:**
-
-- Ensure all required configuration sections exist
-- Check for typos in field names
-- Verify data types match expected values
-
-**OpenAI errors:**
-
-- Verify API key is valid and has credits
-- Check model availability and permissions
-- Monitor rate limits and token usage
-
-### Performance Optimization
-
-**Slow AI analysis:**
-
-- Reduce `max_tokens` limits
-- Lower temperature values
-- Use faster models (gpt-4o-mini)
-
-**High API costs:**
-
-- Increase `relevance_threshold` to filter more tweets
-- Reduce `max_tweets_per_fetch`
-- Optimize prompt lengths
-
-## Updates and Migration
-
-### Configuration Migration
-
-When updating the application:
-
-1. Backup existing configuration:
-
-   ```bash
-   cp config/app.json config/app.json.backup
-   ```
-
-2. Run configuration update:
-
-   ```bash
-   yarn init-config
-   ```
-
-3. Merge custom settings from backup
-
-### Prompt Updates
-
-Regularly review and update prompts for:
-
-- Better analysis quality
-- New use cases or requirements
-- Improved output formats
-- Cost optimization
-
----
-
-For more configuration examples and advanced setups, see the [Setup Guide](SETUP.md) and [API Reference](API.md).

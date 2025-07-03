@@ -303,7 +303,7 @@ export async function analyzeEnhancedThread(
       summary: threadAnalysis.thread_summary || "",
       expert_commentary: threadAnalysis.main_tweet_analysis || "",
       impact_level: threadAnalysis.impact_assessment || "medium",
-      lido_impact: threadAnalysis.lido_impact || {
+      project_impact: threadAnalysis.project_impact || {
         current_state: "neutral",
         potential_risks: [],
         potential_opportunities: [],
@@ -490,8 +490,8 @@ function createFallbackThreadAnalysis(
     consensus_areas: [],
     disagreement_areas: [],
     impact_assessment: "medium",
-    lido_impact: {
-      relevance_to_lido: "Relevance not determined",
+    project_impact: {
+      relevance_to_project: "Relevance not determined",
       main_tweet_impact: "No specific impact identified",
       comments_impact: "General discussion",
       overall_impact: "No specific impact identified",
@@ -629,8 +629,8 @@ ${replies
             : "Crypto news discussion",
         impact_assessment: "medium",
         controversial_points: [],
-        lido_impact: {
-          relevance_to_lido: "0",
+        project_impact: {
+          relevance_to_project: "0",
           main_tweet_impact: "No specific impact identified",
           comments_impact: "No comments to analyze",
           overall_impact: "No specific impact identified",
@@ -647,7 +647,7 @@ ${replies
       summary: threadAnalysis.thread_summary,
       expert_commentary: threadAnalysis.main_tweet_analysis,
       impact_level: threadAnalysis.impact_assessment,
-      lido_impact: threadAnalysis.lido_impact,
+      project_impact: threadAnalysis.project_impact,
       thread_analysis: {
         total_replies: replies.length,
         max_depth: 1, // Legacy analysis assumes flat structure
