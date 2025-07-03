@@ -57,6 +57,12 @@ model Settings {
   targetLanguage    String   @default("ru")
   maxTweetsPerFetch Int      @default(50)
   fetchInterval     Int      @default(300) // seconds
+  
+  // Enhanced parsing settings
+  maxRepliesDepth      Int     @default(3)     // Maximum nesting level to parse
+  maxRepliesPerLevel   Int     @default(50)    // Maximum replies to fetch per level
+  includeReplyChains   Boolean @default(true)  // Whether to fetch full reply chains
+  
   updatedAt         DateTime @updatedAt
   
   @@map("settings")

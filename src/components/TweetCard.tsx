@@ -18,7 +18,8 @@ import {
   Loader2,
   Globe,
 } from "lucide-react";
-import { Tweet, AISummaryResult } from "@/types";
+import { Tweet, AISummaryResult, ThreadStructure } from "@/types";
+import ThreadDisplay from "./ThreadDisplay";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAppStore } from "@/stores/useAppStore";
@@ -29,6 +30,7 @@ interface TweetCardProps {
   onAnalyze?: (tweetId: string, targetLang?: string) => void;
   onDelete?: (tweetId: string) => void;
   isAnalyzing?: boolean;
+  threadStructure?: ThreadStructure | null;
 }
 
 export default function TweetCard({
@@ -36,6 +38,7 @@ export default function TweetCard({
   onAnalyze,
   onDelete,
   isAnalyzing = false,
+  threadStructure,
 }: TweetCardProps) {
   const { expandedTweets, toggleTweetExpansion, toggleFavorite } =
     useAppStore();
@@ -85,6 +88,27 @@ export default function TweetCard({
   const aiComments = tweet.aiComments
     ? (JSON.parse(tweet.aiComments) as AISummaryResult)
     : null;
+
+  // Extract thread structure from repliesData if available
+  const threadStructureFromData = tweet.repliesData
+    ? (() => {
+        try {
+          const parsed = JSON.parse(tweet.repliesData);
+          // Support both direct threadStructure and wrapped in object
+          if (parsed.threadStructure) {
+            return parsed.threadStructure;
+          }
+          // Check if it's a direct ThreadStructure object
+          if (parsed.totalReplies !== undefined) {
+            return parsed;
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+  const actualThreadStructure = threadStructure || threadStructureFromData;
 
   const getRelevanceColor = (score?: number) => {
     if (!score) return "bg-gray-100";
@@ -240,6 +264,38 @@ export default function TweetCard({
           <p className="text-gray-700 whitespace-pre-wrap">
             {tweet.translation}
           </p>
+        </div>
+      )}
+
+      {/* Thread Structure Display */}
+      {actualThreadStructure && actualThreadStructure.totalReplies > 0 && (
+        <div className="mb-4">
+          <div className="text-xs text-gray-500 mb-2">
+            Debug: Found {actualThreadStructure.totalReplies} replies, depth:{" "}
+            {actualThreadStructure.maxDepth}
+          </div>
+          <ThreadDisplay threadStructure={actualThreadStructure} />
+        </div>
+      )}
+
+      {/* Debug: Show if we have thread data but no replies */}
+      {actualThreadStructure && actualThreadStructure.totalReplies === 0 && (
+        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded">
+          <div className="text-xs text-yellow-700">
+            Debug: Thread structure found but no replies (totalReplies:{" "}
+            {actualThreadStructure.totalReplies})
+          </div>
+        </div>
+      )}
+
+      {/* Debug: Show if we have repliesData but no thread structure */}
+      {!actualThreadStructure && tweet.repliesData && (
+        <div className="mb-4 p-2 bg-red-50 border border-red-200 rounded">
+          <div className="text-xs text-red-700">
+            Debug: repliesData exists but no valid thread structure found
+            <br />
+            Data preview: {tweet.repliesData.substring(0, 100)}...
+          </div>
         </div>
       )}
 

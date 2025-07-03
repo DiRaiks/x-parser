@@ -31,6 +31,8 @@ export default function HomePage() {
     new Set()
   );
   const [showSettings, setShowSettings] = useState(false);
+  const [isAddingTweet, setIsAddingTweet] = useState(false);
+  const [addingProgress, setAddingProgress] = useState("");
 
   // Load session data from settings
   useEffect(() => {
@@ -78,33 +80,87 @@ export default function HomePage() {
       // Add to analyzing set
       setAnalyzingTweets((prev) => new Set(prev).add(tweetId));
 
-      // Use saved replies data if available, otherwise empty array
-      let replies = [];
-      if (tweet.repliesData) {
-        try {
-          replies = JSON.parse(tweet.repliesData);
-        } catch (error) {
-          console.error("Error parsing saved replies data:", error);
-          replies = [];
-        }
+      // For Re-analyze, always fetch fresh data instead of using old saved data
+      if (!sessionData.authToken || !sessionData.csrfToken) {
+        alert(
+          "Please enter Twitter session data (auth_token and ct0) for Re-analysis"
+        );
+        return;
       }
 
-      const response = await fetch("/api/ai/analyze", {
+      // Re-parse the tweet with fresh data
+      const parseResponse = await fetch("/api/parser/twitter-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tweetId: tweet.tweetId,
-          content: tweet.content,
-          replies: replies, // Use saved replies data
-          targetLang: targetLang,
+          url: tweet.url,
+          authToken: sessionData.authToken,
+          csrfToken: sessionData.csrfToken,
+          includeReplies: true, // Always include replies for re-analysis
+          maxDepth: 3,
+          maxRepliesPerLevel: 50,
+          forceReAnalysis: true, // Flag to indicate this is a re-analysis
         }),
       });
 
-      if (response.ok) {
-        await response.json();
-        fetchTweets();
+      if (!parseResponse.ok) {
+        const errorData = await parseResponse.json();
+        console.error("Re-parsing error:", errorData);
+
+        if (errorData.needsLogin) {
+          alert(
+            "Twitter session expired. Please update your session credentials and try again."
+          );
+          return;
+        }
+
+        // Fallback to simple analysis - try to get existing thread structure from database
+        const existingThreadStructure = tweet.repliesData
+          ? JSON.parse(tweet.repliesData)
+          : null;
+
+        const response = await fetch("/api/ai/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tweetId: tweet.tweetId,
+            content: tweet.content,
+            threadStructure: existingThreadStructure, // Use existing thread structure if available
+            targetLang: targetLang,
+          }),
+        });
+
+        if (response.ok) {
+          await response.json();
+          fetchTweets();
+        } else {
+          console.error("AI analysis failed:", response.status);
+        }
+        return;
+      }
+
+      const parseData = await parseResponse.json();
+
+      if (parseData.success) {
+        // Now run AI analysis on the freshly parsed tweet with thread structure
+        const analysisResponse = await fetch("/api/ai/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tweetId: tweet.tweetId,
+            content: tweet.content,
+            threadStructure: parseData.threadStructure, // Include fresh thread structure
+            targetLang: targetLang,
+          }),
+        });
+
+        if (analysisResponse.ok) {
+          fetchTweets(); // Refresh to show updated analysis
+        } else {
+          console.error("AI analysis failed:", analysisResponse.status);
+        }
       } else {
-        console.error("AI analysis failed:", response.status);
+        console.error("Re-analysis failed:", parseData.error);
       }
     } catch (error) {
       console.error("Error analyzing tweet:", error);
@@ -129,13 +185,17 @@ export default function HomePage() {
       return;
     }
 
+    setIsAddingTweet(true);
+    setAddingProgress("Parsing tweet...");
     try {
-      // Use session method only
+      // Use session method with enhanced parameters
       const requestBody = {
         url: newTweetUrl,
         authToken: sessionData.authToken,
         csrfToken: sessionData.csrfToken,
         includeReplies: includeReplies,
+        maxDepth: 3, // Default depth for nested replies
+        maxRepliesPerLevel: 50, // Default replies per level
       };
 
       // Parse the tweet with optional replies
@@ -148,7 +208,17 @@ export default function HomePage() {
       if (!parseResponse.ok) {
         const errorData = await parseResponse.json();
         console.error("Parsing error:", errorData);
-        alert(errorData.error || "Error parsing tweet");
+
+        let errorMessage = errorData.error || "Error parsing tweet";
+        if (errorData.needsLogin) {
+          errorMessage +=
+            "\n\n" +
+            (errorData.suggestion ||
+              "Please check your Twitter session credentials");
+        }
+
+        alert(errorMessage);
+        setAddingProgress("");
         return;
       }
 
@@ -156,55 +226,39 @@ export default function HomePage() {
 
       if (!parseData.success) {
         alert("Failed to get data");
+        setAddingProgress("");
         return;
       }
 
       if (!parseData.tweet) {
         alert("Tweet not found for saving");
+        setAddingProgress("");
         return;
       }
 
-      // Save tweet with replies data if available
-      const tweetWithReplies = {
-        ...parseData.tweet,
-        repliesData: parseData.replies || null, // Include replies from parse result
-      };
+      // Tweet is saved by the parser, now just refresh the list
+      setAddingProgress("Refreshing list...");
+      await fetchTweets();
 
-      const saveResponse = await fetch("/api/tweets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tweetWithReplies),
-      });
+      // Clear form and close modal
+      setNewTweetUrl("");
+      setIncludeReplies(false);
+      setShowAddTweet(false);
+      setAddingProgress("");
 
-      if (saveResponse.ok) {
-        setNewTweetUrl("");
-        setIncludeReplies(false);
-        setShowAddTweet(false);
-        fetchTweets();
-
-        const repliesMessage =
-          parseData.replies?.length > 0
-            ? ` with ${parseData.replies.length} comments`
-            : "";
-        alert(`Tweet successfully added${repliesMessage}`);
-
-        // If replies were fetched, automatically analyze
-        if (
-          includeReplies &&
-          parseData.replies &&
-          parseData.replies.length > 0
-        ) {
-          setTimeout(() => {
-            handleAnalyzeTweet(parseData.tweet.tweetId);
-          }, 1000);
-        }
-      } else {
-        const errorData = await saveResponse.json();
-        alert(errorData.error || "Error saving tweet");
-      }
+      // Show success message with thread analysis info
+      const threadInfo = parseData.threadAnalysis
+        ? ` with ${parseData.threadAnalysis.totalReplies} comments (depth: ${parseData.threadAnalysis.maxDepth})`
+        : "";
+      alert(
+        `Tweet successfully added${threadInfo}. Use "Analyze" button to run AI analysis.`
+      );
     } catch (error) {
       console.error("Error adding tweet:", error);
       alert("Error occurred while adding tweet");
+    } finally {
+      setIsAddingTweet(false);
+      setAddingProgress("");
     }
   };
 
@@ -397,13 +451,22 @@ export default function HomePage() {
               <div className="flex space-x-3">
                 <button
                   onClick={handleAddTweet}
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                  disabled={isAddingTweet}
+                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
-                  Add
+                  {isAddingTweet ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      {addingProgress || "Adding..."}
+                    </>
+                  ) : (
+                    "Add"
+                  )}
                 </button>
                 <button
                   onClick={() => setShowAddTweet(false)}
-                  className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                  disabled={isAddingTweet}
+                  className="px-4 py-2 text-gray-500 hover:text-gray-700 disabled:text-gray-400 transition-colors"
                 >
                   Cancel
                 </button>

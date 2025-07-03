@@ -213,3 +213,9 @@ export function resetConfigCache() {
   appConfigCache = null;
   promptsConfigCache = null;
 }
+
+// Force reload prompts config
+export function reloadPromptsConfig(): PromptsConfig {
+  promptsConfigCache = null;
+  return getPromptsConfig();
+}
