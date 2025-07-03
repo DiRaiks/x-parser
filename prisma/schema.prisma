@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tweet {
+  id                String   @id @default(cuid())
+  tweetId          String   @unique
+  authorUsername   String
+  authorName       String
+  content          String
+  createdAt        DateTime
+  url              String
+  likes            Int      @default(0)
+  retweets         Int      @default(0)
+  replies          Int      @default(0)
+  
+  // AI Analysis
+  isRelevant       Boolean  @default(false)
+  relevanceScore   Float?
+  categories       String? // JSON string of categories
+  translation      String?
+  summary          String?
+  aiComments       String?
+  repliesData      String? // JSON string of replies data
+  
+  // App metadata
+  savedAt          DateTime @default(now())
+  isFavorite       Boolean  @default(false)
+  isProcessed      Boolean  @default(false)
+  
+  @@map("tweets")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  keywords    String // JSON string of keywords
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  @@map("categories")
+}
+
+model Settings {
+  id                String   @id @default(cuid())
+  openaiApiKey      String?
+  targetLanguage    String   @default("ru")
+  maxTweetsPerFetch Int      @default(50)
+  fetchInterval     Int      @default(300) // seconds
+  updatedAt         DateTime @updatedAt
+  
+  @@map("settings")
+}

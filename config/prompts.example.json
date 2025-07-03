@@ -1,0 +1,20 @@
+{
+  "_note": "Copy this file to prompts.json and customize the prompts for your use case",
+  
+  "relevance_checker": "Your custom relevance checker prompt...",
+  
+  "translator": {
+    "en": "Your custom English translator prompt...",
+    "ru": "Your custom Russian translator prompt..."
+  },
+  
+  "summarizer": {
+    "en": "Your custom English summarizer prompt...",
+    "ru": "Your custom Russian summarizer prompt..."
+  },
+  
+  "thread_analyzer": {
+    "en": "Your custom English thread analyzer prompt...",
+    "ru": "Your custom Russian thread analyzer prompt..."
+  }
+} 

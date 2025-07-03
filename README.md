@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# X Parser
 
-## Getting Started
+> AI-powered Twitter analysis tool for blockchain content with intelligent filtering and multi-language support
 
-First, run the development server:
+![X Parser](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
+![OpenAI](https://img.shields.io/badge/OpenAI-API-green?style=for-the-badge&logo=openai)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
+
+## ✨ Features
+
+- 🤖 **AI Tweet Analysis** - OpenAI-powered relevance detection and categorization
+- 🌐 **Multi-language Support** - Automatic translation (English/Russian)
+- 🧵 **Thread Analysis** - Parse and analyze Twitter threads with replies
+- 📊 **Smart Filtering** - Filter by relevance, categories, or favorites
+- ⚙️ **Configurable** - Customizable prompts and settings
+- 💾 **Data Persistence** - SQLite database with Prisma ORM
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd x-parser
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Setup Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Initialize config files
+yarn init-config
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your OPENAI_API_KEY
+```
 
-## Learn More
+### 3. Setup Database
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+yarn prisma db push
+yarn prisma generate
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Run
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+yarn dev
+```
 
-## Deploy on Vercel
+Visit `http://localhost:3000` 🎉
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📝 Configuration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app uses JSON configuration files (not tracked in git):
+
+- `config/app.json` - Application settings (AI models, timeouts, limits)
+- `config/prompts.json` - AI prompts for analysis (customizable)
+
+See example files in `config/` folder for reference.
+
+## 🔗 API Endpoints
+
+| Method   | Endpoint                      | Description                      |
+| -------- | ----------------------------- | -------------------------------- |
+| `GET`    | `/api/tweets`                 | List tweets with filtering       |
+| `POST`   | `/api/tweets`                 | Add new tweet                    |
+| `DELETE` | `/api/tweets/{id}`            | Delete tweet                     |
+| `POST`   | `/api/ai/analyze`             | Analyze tweet with AI            |
+| `POST`   | `/api/parser/timeline`        | Parse home timeline feed         |
+| `POST`   | `/api/parser/twitter-session` | Parse tweet with session cookies |
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: SQLite (dev), PostgreSQL (prod)
+- **AI**: OpenAI GPT-4o-mini
+- **State**: Zustand + React Query
+
+## 📚 Documentation
+
+- [Setup Guide](docs/SETUP.md) - Detailed installation and configuration
+- [API Reference](docs/API.md) - Complete API documentation
+- [Configuration](docs/CONFIGURATION.md) - Advanced configuration options
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+**Made with ❤️ for the crypto community**
