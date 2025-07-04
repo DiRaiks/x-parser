@@ -39,12 +39,24 @@ interface TwitterConfig {
   rate_limit_delay_ms: number;
 }
 
+interface AutoMonitoringConfig {
+  enabled: boolean;
+  interval_minutes: number;
+  max_tweets_per_check: number;
+  check_home_timeline: boolean;
+  auto_add_relevant_only: boolean;
+  min_relevance_score: number;
+  skip_retweets: boolean;
+  skip_replies: boolean;
+}
+
 export interface AppConfig {
   openai: OpenAIConfig;
   parsing: ParsingConfig;
   analysis: AnalysisConfig;
   ui: UIConfig;
   twitter: TwitterConfig;
+  auto_monitoring: AutoMonitoringConfig;
 }
 
 export interface PromptsConfig {
@@ -96,6 +108,16 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   },
   twitter: {
     rate_limit_delay_ms: 2000,
+  },
+  auto_monitoring: {
+    enabled: false,
+    interval_minutes: 30,
+    max_tweets_per_check: 50,
+    check_home_timeline: true,
+    auto_add_relevant_only: true,
+    min_relevance_score: 0.5,
+    skip_retweets: true,
+    skip_replies: false,
   },
 };
 
@@ -186,6 +208,10 @@ export function getUIConfig() {
 
 export function getTwitterConfig() {
   return getAppConfig().twitter;
+}
+
+export function getAutoMonitoringConfig() {
+  return getAppConfig().auto_monitoring;
 }
 
 // Prompt helpers

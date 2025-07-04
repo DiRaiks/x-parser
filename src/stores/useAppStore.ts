@@ -1,11 +1,17 @@
 import { create } from "zustand";
 import { Tweet, Category, Settings } from "../types";
 
+interface SessionAuth {
+  auth_token: string;
+  ct0: string;
+}
+
 interface AppState {
   // Data
   tweets: Tweet[];
   categories: Category[];
   settings: Settings | null;
+  sessionAuth: SessionAuth | null;
 
   // UI State
   isLoading: boolean;
@@ -19,6 +25,7 @@ interface AppState {
   updateTweet: (id: string, updates: Partial<Tweet>) => void;
   setCategories: (categories: Category[]) => void;
   setSettings: (settings: Settings) => void;
+  setSessionAuth: (sessionAuth: SessionAuth | null) => void;
   setIsLoading: (loading: boolean) => void;
   setSelectedTweet: (tweet: Tweet | null) => void;
   toggleTweetExpansion: (tweetId: string) => void;
@@ -31,6 +38,7 @@ export const useAppStore = create<AppState>((set) => ({
   tweets: [],
   categories: [],
   settings: null,
+  sessionAuth: null,
   isLoading: false,
   selectedTweet: null,
   expandedTweets: new Set(),
@@ -54,6 +62,8 @@ export const useAppStore = create<AppState>((set) => ({
   setCategories: (categories) => set({ categories }),
 
   setSettings: (settings) => set({ settings }),
+
+  setSessionAuth: (sessionAuth) => set({ sessionAuth }),
 
   setIsLoading: (isLoading) => set({ isLoading }),
 

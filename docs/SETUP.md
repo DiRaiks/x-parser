@@ -119,9 +119,16 @@ Click the gear icon in the top-right corner.
 - Enable "Include comments analysis" for full thread parsing
 - Click "Add"
 
-### 4. Manual AI Analysis
+### 4. Set Up Auto-Monitoring (Recommended)
 
-- After tweet is added, click "Analyze" button
+- In the main page, find "Twitter Timeline Monitor" section
+- Click "Start Monitoring" to enable automatic timeline monitoring
+- System will check your timeline every 30 minutes for new relevant tweets
+- Use "Run Now" for immediate manual check
+
+### 5. Manual AI Analysis
+
+- After tweets are added (automatically or manually), click "Analyze" button
 - AI will analyze tweet content and thread structure
 - Results include relevance, categories, sentiment analysis, and project impact
 
@@ -161,6 +168,15 @@ Click the gear icon in the top-right corner.
     "supported_languages": ["en", "ru"],
     "manual_analysis": true,
     "auto_analysis": false
+  },
+  "auto_monitoring": {
+    "enabled": true,
+    "interval_minutes": 30,
+    "max_tweets_per_check": 50,
+    "auto_add_relevant_only": true,
+    "min_relevance_score": 0.5,
+    "skip_retweets": true,
+    "skip_replies": false
   }
 }
 ```
@@ -191,6 +207,26 @@ Customize AI prompts for different analysis types:
 ```
 
 ## Advanced Features
+
+### Automatic Timeline Monitoring
+
+The app provides intelligent automated monitoring of your Twitter timeline:
+
+- **Continuous Monitoring**: Automatically checks timeline every 30 minutes
+- **Smart Filtering**: Uses AI to filter relevant tweets based on configured criteria
+- **Relevance Scoring**: Only adds tweets above configured relevance threshold
+- **Duplicate Prevention**: Automatically skips tweets already in database
+- **Background Processing**: Runs in browser background without manual intervention
+- **Real-time Status**: Shows monitoring statistics and last run information
+
+**Configuration Options:**
+
+- `interval_minutes`: How often to check (15-180 minutes)
+- `max_tweets_per_check`: Limit tweets processed per run (10-100)
+- `auto_add_relevant_only`: Only add tweets passing relevance check
+- `min_relevance_score`: Threshold for automatic addition (0.0-1.0)
+- `skip_retweets`: Focus on original content only
+- `skip_replies`: Include/exclude replies to followed accounts
 
 ### Thread Structure Analysis
 
@@ -286,6 +322,14 @@ pm2 start yarn --name "x-parser" -- start
 - Check rate limits (both OpenAI and app-level)
 - Review custom prompts for syntax errors
 - Enable debug mode for detailed error logs
+
+**Auto-Monitoring Issues**
+
+- Verify Twitter session credentials are valid and current
+- Check if monitoring is enabled in `config/app.json`
+- Ensure browser tab stays open (monitoring runs in browser)
+- Review relevance threshold - may be filtering all tweets
+- Check rate limits - may need to reduce `max_tweets_per_check`
 
 **Thread Parsing Issues**
 

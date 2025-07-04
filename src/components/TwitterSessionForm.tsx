@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface TwitterSessionFormProps {
   onSubmit: (url: string, cookies: object) => void;
@@ -11,6 +12,7 @@ export default function TwitterSessionForm({
   onSubmit,
   isLoading,
 }: TwitterSessionFormProps) {
+  const { setSessionAuth } = useAppStore();
   const [url, setUrl] = useState("");
   const [cookiesText, setCookiesText] = useState("");
   const [showInstructions, setShowInstructions] = useState(false);
@@ -33,6 +35,14 @@ export default function TwitterSessionForm({
           cookies[key] = value;
         }
       }
+    }
+
+    // Update session auth for auto-monitoring if credentials are provided
+    if (cookies.auth_token && cookies.ct0) {
+      setSessionAuth({
+        auth_token: cookies.auth_token,
+        ct0: cookies.ct0,
+      });
     }
 
     onSubmit(url, cookies);

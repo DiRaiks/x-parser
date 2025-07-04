@@ -65,6 +65,15 @@ AI prompts for different analysis tasks - fully customizable for your specific u
     "fallback_to_bearer": true,
     "session_timeout_hours": 24
   },
+  "auto_monitoring": {
+    "enabled": true,
+    "interval_minutes": 30,
+    "max_tweets_per_check": 50,
+    "auto_add_relevant_only": true,
+    "min_relevance_score": 0.5,
+    "skip_retweets": true,
+    "skip_replies": false
+  },
   "database": {
     "auto_cleanup_days": 30,
     "backup_interval_hours": 24,
@@ -181,6 +190,40 @@ Configure Twitter session handling:
   }
 }
 ```
+
+### Auto-Monitoring Settings
+
+Configure automatic timeline monitoring:
+
+```json
+{
+  "auto_monitoring": {
+    "enabled": true, // Enable auto-monitoring feature
+    "interval_minutes": 30, // Check timeline every 30 minutes
+    "max_tweets_per_check": 50, // Maximum tweets to process per run
+    "auto_add_relevant_only": true, // Only add relevant tweets automatically
+    "min_relevance_score": 0.5, // Minimum relevance score (0.0-1.0)
+    "skip_retweets": true, // Skip retweets in timeline
+    "skip_replies": false // Include replies to followed accounts
+  }
+}
+```
+
+**Auto-Monitoring Options:**
+
+- `enabled`: Enable/disable the auto-monitoring feature
+- `interval_minutes`: How often to check timeline (15-180 minutes recommended)
+- `max_tweets_per_check`: Limit processing to avoid rate limits (10-100)
+- `auto_add_relevant_only`: Only add tweets that pass relevance check
+- `min_relevance_score`: Threshold for automatic addition (0.0-1.0)
+- `skip_retweets`: Skip retweets to focus on original content
+- `skip_replies`: Include/exclude replies in monitoring
+
+**Recommended Settings:**
+
+- **High Activity**: `interval_minutes: 15`, `max_tweets_per_check: 20`
+- **Balanced**: `interval_minutes: 30`, `max_tweets_per_check: 50`
+- **Conservative**: `interval_minutes: 60`, `max_tweets_per_check: 100`
 
 ### Database Settings
 

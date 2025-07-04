@@ -8,8 +8,9 @@
 
 ## ✨ Features
 
+- 🚀 **Automatic Timeline Monitoring** - Continuous monitoring of your Twitter timeline with intelligent filtering
 - 🔐 **Session-Based Parsing** - Use Twitter auth cookies for full access to tweets and comments
-- 🤖 **Manual AI Analysis** - Run AI analysis on-demand to save tokens and processing time
+- 🤖 **Smart AI Analysis** - Automatic relevance filtering and on-demand detailed analysis
 - 🧵 **Complete Thread Analysis** - Parse entire comment trees with pagination support
 - 📊 **Thread Visualization** - Interactive display of comment hierarchies and thread statistics
 - 🎯 **Smart Sentiment Analysis** - Analyze community reactions and sentiment patterns
@@ -64,6 +65,16 @@ Visit `http://localhost:3000` 🎉
 
 ## 🔄 Workflow
 
+### Automatic Mode (Recommended)
+
+1. **Setup Monitoring**: Configure Twitter session credentials in Settings
+2. **Start Auto-monitoring**: Enable automatic timeline monitoring (runs every 30 minutes)
+3. **Intelligent Filtering**: AI automatically filters relevant tweets based on configured criteria
+4. **Background Processing**: New tweets are added to database automatically
+5. **Manual Analysis**: Click "Analyze" button for detailed AI analysis when needed
+
+### Manual Mode
+
 1. **Add Tweet**: Paste Twitter URL → automatic parsing with optional thread analysis
 2. **Manual Analysis**: Click "Analyze" button when ready to run AI analysis
 3. **Thread Exploration**: Expand thread structure to see comment hierarchies
@@ -88,24 +99,28 @@ Visit `http://localhost:3000` 🎉
 
 ## 🔗 API Endpoints
 
-| Method   | Endpoint                      | Description                    |
-| -------- | ----------------------------- | ------------------------------ |
-| `GET`    | `/api/tweets`                 | List tweets with filtering     |
-| `POST`   | `/api/tweets`                 | Add new tweet                  |
-| `DELETE` | `/api/tweets/{id}`            | Delete tweet                   |
-| `POST`   | `/api/ai/analyze`             | Analyze tweet with AI (manual) |
-| `POST`   | `/api/parser/twitter-session` | Parse tweet with session auth  |
-| `POST`   | `/api/parser/timeline`        | Parse home timeline feed       |
+| Method   | Endpoint                      | Description                     |
+| -------- | ----------------------------- | ------------------------------- |
+| `GET`    | `/api/tweets`                 | List tweets with filtering      |
+| `POST`   | `/api/tweets`                 | Add new tweet                   |
+| `DELETE` | `/api/tweets/{id}`            | Delete tweet                    |
+| `POST`   | `/api/ai/analyze`             | Analyze tweet with AI (manual)  |
+| `POST`   | `/api/auto-monitor`           | Auto-monitor timeline           |
+| `GET`    | `/api/auto-monitor/control`   | Get monitoring status           |
+| `POST`   | `/api/auto-monitor/control`   | Control monitoring (start/stop) |
+| `POST`   | `/api/parser/twitter-session` | Parse tweet with session auth   |
+| `POST`   | `/api/parser/timeline`        | Parse home timeline feed        |
 
 ## 📝 Configuration
 
 The app uses JSON configuration files (not tracked in git):
 
-- `config/app.json` - Application settings (AI models, timeouts, limits)
+- `config/app.json` - Application settings (AI models, timeouts, limits, auto-monitoring)
 - `config/prompts.json` - AI prompts for analysis (fully customizable)
 
 Key configuration options:
 
+- **Auto-monitoring**: Configure monitoring intervals, filtering rules, and relevance thresholds
 - **AI Model Selection**: Choose between GPT models for different use cases
 - **Analysis Prompts**: Customize prompts for relevance, sentiment, and project impact analysis
 - **Thread Parsing**: Configure depth limits and pagination settings

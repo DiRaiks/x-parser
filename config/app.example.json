@@ -36,5 +36,26 @@
   
   "twitter": {
     "rate_limit_delay_ms": 3000
+  },
+  
+  "auto_monitoring": {
+    "_note": "Automatically monitors your Twitter timeline for new tweets",
+    "enabled": false,
+    "interval_minutes": 30,
+    "max_tweets_per_check": 50,
+    "check_home_timeline": true,
+    "auto_add_relevant_only": true,
+    "min_relevance_score": 0.5,
+    "skip_retweets": true,
+    "skip_replies": false,
+    "_help": {
+      "enabled": "Turn on/off automatic monitoring",
+      "interval_minutes": "How often to check for new tweets (minimum 5 minutes)",
+      "max_tweets_per_check": "Maximum tweets to process in one check (1-100)",
+      "auto_add_relevant_only": "Only add tweets that pass AI relevance check",
+      "min_relevance_score": "Minimum relevance score (0.0-1.0) for tweets to be added",
+      "skip_retweets": "Skip retweets from timeline",
+      "skip_replies": "Skip reply tweets from timeline"
+    }
   }
 } 

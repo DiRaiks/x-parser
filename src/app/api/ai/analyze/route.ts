@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Enhanced thread analysis for hierarchical structure
-export async function analyzeEnhancedThread(
+async function analyzeEnhancedThread(
   tweetId: string,
   mainTweet: string,
   threadStructure: ThreadStructure,

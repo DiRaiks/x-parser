@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Save, Eye, EyeOff } from "lucide-react";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+  const { setSessionAuth } = useAppStore();
   const [settings, setSettings] = useState({
     authToken: "",
     csrfToken: "",
@@ -50,6 +52,16 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     try {
       // Save to localStorage for now (can be moved to API later)
       localStorage.setItem("twitterSettings", JSON.stringify(settings));
+
+      // Sync with store for auto-monitoring
+      if (settings.authToken && settings.csrfToken) {
+        setSessionAuth({
+          auth_token: settings.authToken,
+          ct0: settings.csrfToken,
+        });
+      } else {
+        setSessionAuth(null);
+      }
 
       setSaveStatus("success");
       setTimeout(() => {

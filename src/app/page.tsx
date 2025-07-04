@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Settings, Plus, Loader2 } from "lucide-react";
 import TweetCard from "@/components/TweetCard";
-import ParserControls from "@/components/ParserControls";
+import AutoMonitorControl from "@/components/AutoMonitorControl";
 import { useAppStore } from "@/stores/useAppStore";
 import SettingsModal from "@/components/SettingsModal";
 
@@ -16,6 +16,7 @@ export default function HomePage() {
     setIsLoading,
     currentFilter,
     setCurrentFilter,
+    setSessionAuth,
   } = useAppStore();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,18 +35,31 @@ export default function HomePage() {
   const [isAddingTweet, setIsAddingTweet] = useState(false);
   const [addingProgress, setAddingProgress] = useState("");
 
-  // Load session data from settings
+  // Load session data from settings and sync with store
   useEffect(() => {
     const loadSessionData = () => {
       try {
         const saved = localStorage.getItem("twitterSettings");
         if (saved) {
           const settings = JSON.parse(saved);
+          const authToken = settings.authToken || "";
+          const csrfToken = settings.csrfToken || "";
+
           setSessionData((prev) => ({
             ...prev,
-            authToken: settings.authToken || "",
-            csrfToken: settings.csrfToken || "",
+            authToken,
+            csrfToken,
           }));
+
+          // Sync with store for auto-monitoring
+          if (authToken && csrfToken) {
+            setSessionAuth({
+              auth_token: authToken,
+              ct0: csrfToken,
+            });
+          } else {
+            setSessionAuth(null);
+          }
         }
       } catch (error) {
         console.error("Failed to load session data:", error);
@@ -53,11 +67,31 @@ export default function HomePage() {
     };
 
     loadSessionData();
-  }, [showSettings]); // Reload when settings modal closes
+  }, [showSettings, setSessionAuth]); // Reload when settings modal closes
 
   useEffect(() => {
     fetchTweets();
   }, [currentFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for auto-monitoring updates
+  useEffect(() => {
+    const handleTweetsUpdated = (event: CustomEvent) => {
+      console.log("Auto-monitoring added tweets:", event.detail.added);
+      fetchTweets(); // Refresh the tweets list
+    };
+
+    window.addEventListener(
+      "tweetsUpdated",
+      handleTweetsUpdated as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "tweetsUpdated",
+        handleTweetsUpdated as EventListener
+      );
+    };
+  }, []); // Empty dependency array to avoid circular dependency
 
   const fetchTweets = async () => {
     setIsLoading(true);
@@ -324,6 +358,7 @@ export default function HomePage() {
 
               <button
                 onClick={() => setShowSettings(true)}
+                data-settings-button
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <Settings className="w-5 h-5" />
@@ -335,8 +370,8 @@ export default function HomePage() {
 
       {/* Filters and Search */}
       <div className="max-w-4xl mx-auto px-6 py-6">
-        {/* Parser Controls */}
-        <ParserControls onTweetsUpdated={fetchTweets} />
+        {/* Auto-monitoring Control */}
+        <AutoMonitorControl />
 
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
           {/* Search */}

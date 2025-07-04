@@ -274,6 +274,98 @@ POST /api/parser/timeline
 }
 ```
 
+## Auto-Monitoring API
+
+### Monitor Timeline
+
+Automatically monitors Twitter timeline for new tweets with intelligent filtering.
+
+```http
+POST /api/auto-monitor
+```
+
+**Body:**
+
+```json
+{
+  "authToken": "session_auth_token",
+  "csrfToken": "csrf_token_ct0"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "processed": 25,
+  "added": 8,
+  "filtered": 17,
+  "status": "Monitoring completed successfully",
+  "next_run": "2024-01-01T01:30:00Z"
+}
+```
+
+### Get Monitoring Status
+
+```http
+GET /api/auto-monitor/control
+```
+
+**Response:**
+
+```json
+{
+  "isRunning": true,
+  "lastRun": "2024-01-01T01:00:00Z",
+  "lastStatus": "success: Added 8 new tweets",
+  "nextRun": "2024-01-01T01:30:00Z",
+  "stats": {
+    "totalRuns": 45,
+    "totalProcessed": 1250,
+    "totalAdded": 380,
+    "lastError": null
+  }
+}
+```
+
+### Control Monitoring
+
+```http
+POST /api/auto-monitor/control
+```
+
+**Body:**
+
+```json
+{
+  "action": "start|stop|manual_run|credentials|clear_credentials",
+  "authToken": "session_auth_token", // for credentials action
+  "csrfToken": "csrf_token_ct0" // for credentials action
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Monitoring started successfully",
+  "status": {
+    "isRunning": true,
+    "intervalMinutes": 30
+  }
+}
+```
+
+**Available Actions:**
+
+- `start` - Start automatic monitoring
+- `stop` - Stop automatic monitoring
+- `manual_run` - Run monitoring once immediately
+- `credentials` - Set/update Twitter session credentials
+- `clear_credentials` - Clear stored credentials
+
 ## Error Responses
 
 All endpoints may return error responses:
@@ -434,6 +526,40 @@ curl -X POST "http://localhost:3000/api/parser/timeline" \
     "csrfToken": "your_csrf_token",
     "count": 20,
     "includeReplies": true
+  }'
+```
+
+### Start Auto-Monitoring
+
+```bash
+curl -X POST "http://localhost:3000/api/auto-monitor/control" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "credentials",
+    "authToken": "your_session_token",
+    "csrfToken": "your_csrf_token"
+  }'
+
+curl -X POST "http://localhost:3000/api/auto-monitor/control" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "start"
+  }'
+```
+
+### Check Monitoring Status
+
+```bash
+curl "http://localhost:3000/api/auto-monitor/control"
+```
+
+### Manual Monitoring Run
+
+```bash
+curl -X POST "http://localhost:3000/api/auto-monitor/control" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "manual_run"
   }'
 ```
 
