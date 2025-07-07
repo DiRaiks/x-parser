@@ -2,6 +2,31 @@
 
 > AI-powered Twitter analysis tool with session-based parsing, thread analysis, and intelligent categorization for blockchain content
 
+## ⚠️ Disclaimer
+
+**This application is NOT a Twitter/X alternative and does not replace Twitter/X functionality.**
+
+X Parser is a third-party analysis tool that:
+
+- 📊 **Analyzes publicly available data** from Twitter/X using standard web interfaces
+- 🔐 **Uses only user's own session cookies** to access content visible to that specific user
+- 🚫 **Does NOT store, redistribute, or republish** Twitter/X content beyond personal analysis
+- 🎯 **Serves as a personal analysis dashboard** for blockchain and cryptocurrency content
+- 📝 **Operates within Twitter's Terms of Service** by accessing only user-visible content
+- 🛡️ **Respects Twitter/X's platform boundaries** and does not attempt to replicate platform features
+
+**For Developers**: This tool is designed for personal use and content analysis only. Users are responsible for compliance with Twitter/X Terms of Service when using their own authentication cookies. The application does not perform any unauthorized access, data scraping, or platform manipulation.
+
+**For Twitter/X**: This application enhances user experience by providing analysis tools for content users already have access to, similar to browser extensions or personal dashboards. No platform features are replicated or circumvented.
+
+**User responsibility**: Users are solely responsible for:
+
+- ✅ Ensuring compliance with applicable Terms of Service
+- ✅ Using their own valid authentication credentials
+- ✅ Respecting rate limits and platform policies
+
+---
+
 ![X Parser](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-green?style=for-the-badge&logo=openai)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
