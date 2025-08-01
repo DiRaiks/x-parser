@@ -1,0 +1,19 @@
+# Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here  
+TELEGRAM_ADMIN_ID=your_admin_user_id_here
+
+# Twitter Session (for monitoring)
+TWITTER_AUTH_TOKEN=your_twitter_auth_token
+TWITTER_CSRF_TOKEN=your_twitter_csrf_token
+
+# OpenAI API (same as main app)
+OPENAI_API_KEY=your_openai_api_key
+
+# Database (same as main app) 
+DATABASE_URL=file:../prisma/dev.db
+
+# Bot Settings (optional)
+BOT_MONITORING_INTERVAL_MINUTES=30
+BOT_MESSAGE_FORMAT=detailed
+BOT_LANGUAGE=ru 

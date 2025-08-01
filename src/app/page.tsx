@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Settings, Plus, Loader2 } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Settings,
+  Plus,
+  Loader2,
+  ArrowUpDown,
+} from "lucide-react";
 import TweetCard from "@/components/TweetCard";
 import AutoMonitorControl from "@/components/AutoMonitorControl";
 import { useAppStore } from "@/stores/useAppStore";
@@ -23,6 +30,7 @@ export default function HomePage() {
   const [showAddTweet, setShowAddTweet] = useState(false);
   const [newTweetUrl, setNewTweetUrl] = useState("");
   const [includeReplies, setIncludeReplies] = useState(false);
+  const [sortOrder, setSortOrder] = useState("newest");
 
   const [sessionData, setSessionData] = useState({
     authToken: "",
@@ -71,7 +79,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchTweets();
-  }, [currentFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentFilter, sortOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Listen for auto-monitoring updates
   useEffect(() => {
@@ -96,7 +104,9 @@ export default function HomePage() {
   const fetchTweets = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/tweets?filter=${currentFilter}`);
+      const response = await fetch(
+        `/api/tweets?filter=${currentFilter}&sort=${sortOrder}`
+      );
       const data = await response.json();
       setTweets(data.tweets || []);
     } catch (error) {
@@ -316,6 +326,32 @@ export default function HomePage() {
     }
   };
 
+  const handleToggleFavorite = async (tweetId: string) => {
+    try {
+      const tweet = tweets.find((t) => t.id === tweetId);
+      if (!tweet) return;
+
+      const response = await fetch(`/api/tweets/${tweetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFavorite: !tweet.isFavorite }),
+      });
+
+      if (response.ok) {
+        // Update tweet in state
+        setTweets(
+          tweets.map((t) =>
+            t.id === tweetId ? { ...t, isFavorite: !t.isFavorite } : t
+          )
+        );
+      } else {
+        console.error("Failed to toggle favorite");
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
+  };
+
   const filteredTweets = (tweets || []).filter(
     (tweet) =>
       searchQuery === "" ||
@@ -332,6 +368,16 @@ export default function HomePage() {
     { key: "defi", label: "DeFi" },
     { key: "nft", label: "NFT" },
     { key: "blockchain", label: "Blockchain" },
+  ];
+
+  const sortOptions = [
+    { key: "newest", label: "Newest First" },
+    { key: "oldest", label: "Oldest First" },
+    { key: "most_liked", label: "Most Liked" },
+    { key: "most_retweeted", label: "Most Retweeted" },
+    { key: "most_replies", label: "Most Replies" },
+    { key: "saved_newest", label: "Recently Added" },
+    { key: "saved_oldest", label: "First Added" },
   ];
 
   return (
@@ -386,23 +432,45 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <div className="flex flex-wrap gap-2">
-              {filters.map((filter) => (
-                <button
-                  key={filter.key}
-                  onClick={() => setCurrentFilter(filter.key)}
-                  className={`px-3 py-1 text-sm font-medium rounded-full transition-colors ${
-                    currentFilter === filter.key
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              ))}
+          {/* Filters and Sort */}
+          <div className="space-y-3">
+            {/* Filters */}
+            <div className="flex items-center space-x-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <div className="flex flex-wrap gap-2">
+                {filters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setCurrentFilter(filter.key)}
+                    className={`px-3 py-1 text-sm font-medium rounded-full transition-colors ${
+                      currentFilter === filter.key
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center space-x-2">
+              <ArrowUpDown className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700">
+                Sort by:
+              </span>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -534,6 +602,7 @@ export default function HomePage() {
                 tweet={tweet}
                 onAnalyze={handleAnalyzeTweet}
                 onDelete={handleDeleteTweet}
+                onToggleFavorite={handleToggleFavorite}
                 isAnalyzing={analyzingTweets.has(tweet.tweetId)}
               />
             ))}

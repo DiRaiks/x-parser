@@ -132,6 +132,19 @@ Click the gear icon in the top-right corner.
 - AI will analyze tweet content and thread structure
 - Results include relevance, categories, sentiment analysis, and project impact
 
+### 6. Using Filters and Sorting
+
+- **Filters**: Use category filters (All, Relevant, Favorites, Ethereum, DeFi, NFT, Blockchain)
+- **Sorting**: Choose from 7 sort options:
+  - `Newest First` - Most recent tweets by publication date
+  - `Oldest First` - Oldest tweets by publication date
+  - `Most Liked` - Tweets with highest like count
+  - `Most Retweeted` - Tweets with highest retweet count
+  - `Most Replies` - Tweets with most replies/engagement
+  - `Recently Added` - Most recently added to database
+  - `First Added` - First tweets added to database
+- **Combined**: Use filters and sorting together for precise tweet discovery
+
 ## Configuration
 
 ### App Settings (`config/app.json`)
@@ -164,7 +177,7 @@ Click the gear icon in the top-right corner.
     }
   },
   "analysis": {
-    "default_language": "en",
+    "default_language": "ru",
     "supported_languages": ["en", "ru"],
     "manual_analysis": true,
     "auto_analysis": false

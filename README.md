@@ -41,6 +41,7 @@ X Parser is a third-party analysis tool that:
 - 🎯 **Smart Sentiment Analysis** - Analyze community reactions and sentiment patterns
 - 🌐 **Multi-language Support** - Automatic translation and analysis (English/Russian)
 - 📈 **Project Impact Analysis** - Configurable analysis for any project or protocol
+- 🔢 **Advanced Sorting** - Sort tweets by publication date, engagement metrics, or database save time
 - 💾 **Persistent Storage** - SQLite database with comprehensive tweet and thread data
 - ⚙️ **Configurable Prompts** - Customizable AI analysis prompts via JSON configuration
 
@@ -101,9 +102,10 @@ Visit `http://localhost:3000` 🎉
 ### Manual Mode
 
 1. **Add Tweet**: Paste Twitter URL → automatic parsing with optional thread analysis
-2. **Manual Analysis**: Click "Analyze" button when ready to run AI analysis
-3. **Thread Exploration**: Expand thread structure to see comment hierarchies
-4. **Sentiment Review**: Check community reactions and sentiment distribution
+2. **Filter & Sort**: Use filters (relevant, favorites, categories) and sort options (newest, most liked, etc.)
+3. **Manual Analysis**: Click "Analyze" button when ready to run AI analysis
+4. **Thread Exploration**: Expand thread structure to see comment hierarchies
+5. **Sentiment Review**: Check community reactions and sentiment distribution
 
 ## 📊 Analysis Features
 
@@ -183,3 +185,47 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ---
 
 **Made with ❤️ for the crypto community**
+
+## 🤖 Telegram Bot
+
+X Parser includes a Telegram bot for automatic notifications about new relevant tweets with AI analysis.
+
+### Quick Bot Setup
+
+```bash
+# Install bot dependencies
+yarn bot:setup
+
+# Configure environment variables
+cd telegram
+cp env-example.txt .env
+# Edit .env file with your credentials
+
+# Start the bot
+yarn bot:dev
+```
+
+### Bot Features
+
+- 🔄 **Automatic monitoring** every 30 minutes
+- 📱 **Batch notifications** for new relevant tweets
+- 🤖 **AI analysis** with translation and summary
+- ⚙️ **Command management** (/start, /status, /monitor, /fetch, /reset)
+- 🔒 **Admin access only** for bot owner
+- 📊 **Thread analysis** including community reactions and sentiment
+- 🌐 **Multi-language support** (English/Russian analysis display)
+
+### Bot Commands
+
+- `/start` - Initialize bot and show help
+- `/status` - Check monitoring status
+- `/monitor start/stop` - Control automatic monitoring
+- `/fetch` - Manually fetch new analyzed tweets
+- `/reset` - Reset monitoring state
+- `/analyze <url>` - Analyze a specific tweet
+
+### Documentation
+
+Detailed bot setup and usage documentation: [telegram/README.md](telegram/README.md)
+
+---

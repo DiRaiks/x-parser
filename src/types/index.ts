@@ -16,7 +16,7 @@ export interface Tweet {
   categories?: string;
   translation?: string;
   summary?: string;
-  aiComments?: string;
+  aiComments?: string; // JSON string of AIAnalysis
   repliesData?: string;
 
   // App metadata
@@ -88,6 +88,53 @@ export interface AIAnalysisResult {
   reason: string;
 }
 
+// ===== NEW UNIFIED AI ANALYSIS STRUCTURE =====
+
+export interface ProjectImpact {
+  relevance_score: number; // 0-10
+  description: string; // Main impact description
+  opportunities: string; // Opportunities for the project
+  threats: string; // Potential threats or risks
+}
+
+export interface ThreadMetrics {
+  total_replies: number;
+  max_depth: number;
+  sentiment: {
+    positive: number;
+    negative: number;
+    neutral: number;
+    mixed: number;
+  };
+  key_reactions: string[];
+  community_pulse: string;
+  controversial_points: string[];
+  consensus_areas: string[];
+  disagreement_areas: string[];
+}
+
+// UNIFIED AI ANALYSIS INTERFACE
+export interface AIAnalysis {
+  type: "single" | "thread";
+
+  simple: {
+    title: string; // Main point (what_author_meant or thread_about)
+    summary: string; // Content summary or simple_summary
+    viewpoints?: string; // Main viewpoints (only for threads)
+    terms?: string; // Key terms explained (if any)
+    why_matters: string; // Why it matters or discussion_reason
+  };
+
+  expert: {
+    summary: string; // Expert summary
+    impact_level: "low" | "medium" | "high";
+    project_impact: ProjectImpact;
+  };
+
+  thread_data?: ThreadMetrics; // Only present for threads
+}
+
+// Legacy interfaces for backward compatibility during migration
 export interface ThreadAnalysisResult {
   total_replies: number;
   max_depth: number;
@@ -120,35 +167,6 @@ export interface ThreadAnalysisResult {
     echo_chamber_score: number; // How much agreement vs disagreement
     new_information_score: number; // How much new info is shared
   };
-}
-
-export interface ProjectImpactAnalysis {
-  relevance_to_project: string;
-  main_tweet_impact: string;
-  comments_impact: string;
-  overall_impact: string;
-  opportunities: string;
-  threats: string;
-
-  // Enhanced analysis
-  reply_chain_insights: string[];
-  community_sentiment: string;
-  competitive_mentions: string[];
-}
-
-export interface AISummaryResult {
-  summary: string;
-  expert_comment?: string;
-  expert_commentary?: string;
-  impact_level: "low" | "medium" | "high";
-  project_impact?: ProjectImpactAnalysis;
-  thread_analysis?: ThreadAnalysisResult;
-
-  // New fields for enhanced analysis
-  nested_discussion_summary: string;
-  key_debate_points: string[];
-  consensus_areas: string[];
-  disagreement_areas: string[];
 }
 
 export interface TweetParseData {

@@ -34,7 +34,12 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "init-config": "node scripts/init-config.mjs",
-    "setup": "yarn install && yarn db:generate && yarn init-config"
+    "setup": "yarn install && yarn db:generate && yarn init-config",
+    "bot:install": "cd telegram && npm install",
+    "bot:dev": "cd telegram && npm run dev", 
+    "bot:build": "cd telegram && npm run build",
+    "bot:start": "cd telegram && npm start",
+    "bot:setup": "cd telegram && npm install && cd .. && yarn db:generate"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",

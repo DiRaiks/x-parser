@@ -19,14 +19,25 @@ http://localhost:3000/api
 ### Get Tweets
 
 ```http
-GET /api/tweets?filter={filter}&page={page}&limit={limit}
+GET /api/tweets?filter={filter}&sort={sort}&page={page}&limit={limit}
 ```
 
 **Parameters:**
 
 - `filter` (optional): `all`, `relevant`, `favorites`, `ethereum`, `defi`, `nft`, `blockchain`
+- `sort` (optional): `newest`, `oldest`, `most_liked`, `most_retweeted`, `most_replies`, `saved_newest`, `saved_oldest` (default: `newest`)
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20)
+
+**Sort Options:**
+
+- `newest` - Sort by tweet publication date (newest first)
+- `oldest` - Sort by tweet publication date (oldest first)
+- `most_liked` - Sort by like count (highest first)
+- `most_retweeted` - Sort by retweet count (highest first)
+- `most_replies` - Sort by reply count (highest first)
+- `saved_newest` - Sort by when tweet was added to database (recently added first)
+- `saved_oldest` - Sort by when tweet was added to database (first added first)
 
 **Response:**
 
@@ -49,7 +60,7 @@ GET /api/tweets?filter={filter}&page={page}&limit={limit}
       "categories": "[\"ethereum\", \"defi\"]",
       "translation": "Translated content...",
       "summary": "Brief summary...",
-      "aiComments": "{\"expert_comment\": \"...\"}",
+      "aiComments": "{\"type\": \"single\", \"simple\": {\"title\": \"...\", \"summary\": \"...\", \"terms\": \"...\", \"why_matters\": \"...\"}, \"expert\": {\"summary\": \"...\", \"impact_level\": \"high\", \"project_impact\": {...}}}",
       "repliesData": "{\"replies\": [...], \"threadStructure\": {...}}",
       "isFavorite": false,
       "isProcessed": true,
@@ -125,44 +136,117 @@ POST /api/ai/analyze
 {
   "success": true,
   "tweet": {
-    /* Updated tweet object */
+    /* Updated tweet object with new aiComments field */
   },
   "analysis": {
-    "relevance": {
-      "relevance_score": 0.85,
-      "is_relevant": true,
-      "categories": ["ethereum", "defi"],
-      "reason": "Discusses Ethereum staking mechanisms"
+    "type": "thread",
+    "simple": {
+      "title": "Ethereum 2.0 Staking Mechanism Explained",
+      "summary": "Vitalik explains the technical details of Ethereum staking rewards and validator economics",
+      "viewpoints": "Community is discussing validator profitability and decentralization concerns",
+      "why_matters": "This directly impacts Ethereum's transition to proof-of-stake and validator incentives"
     },
-    "translation": "Translated content...",
-    "summary": {
-      "summary": "Brief summary...",
-      "expert_comment": "Expert analysis...",
+    "expert": {
+      "summary": "Deep technical analysis of Ethereum staking economics with focus on validator sustainability and network security implications",
       "impact_level": "high",
       "project_impact": {
-        "relevance_to_project": "High relevance...",
-        "opportunities": "Could improve...",
-        "threats": "Potential risks..."
+        "relevance_score": 9,
+        "description": "High relevance for Ethereum-based projects",
+        "opportunities": "Could leverage improved staking mechanisms for protocol security",
+        "threats": "Potential changes in validator economics may affect network stability"
       }
     },
-    "thread_analysis": {
+    "thread_data": {
       "total_replies": 25,
-      "sentiment_breakdown": {
+      "max_depth": 3,
+      "sentiment": {
         "positive": 15,
         "negative": 3,
-        "neutral": 7
+        "neutral": 7,
+        "mixed": 0
       },
-      "community_pulse": "positive",
-      "key_topics": ["staking", "rewards", "decentralization"],
-      "engagement_level": "high",
-      "top_participants": [
-        {
-          "username": "user1",
-          "reply_count": 3,
-          "engagement_score": 85
-        }
-      ]
+      "key_reactions": [
+        "Positive validator feedback",
+        "Questions about implementation"
+      ],
+      "community_pulse": "Community is optimistic about staking improvements but has concerns about complexity",
+      "controversial_points": [
+        "Validator minimum requirements",
+        "Centralization risks"
+      ],
+      "consensus_areas": [
+        "Need for better documentation",
+        "Importance of security"
+      ],
+      "disagreement_areas": ["Timeline for implementation"]
     }
+  }
+}
+```
+
+### AI Analysis Structure
+
+The AI analysis follows a unified structure (`AIAnalysis`) that varies slightly based on the analysis type:
+
+#### Single Tweet Analysis (`type: "single"`)
+
+```json
+{
+  "type": "single",
+  "simple": {
+    "title": "Brief descriptive title of the tweet",
+    "summary": "Concise summary of the tweet content",
+    "terms": "Explanation of complex terms mentioned (or 'No complex terms to explain')",
+    "why_matters": "Why this tweet is relevant and important"
+  },
+  "expert": {
+    "summary": "In-depth expert analysis of the tweet",
+    "impact_level": "low|medium|high",
+    "project_impact": {
+      "relevance_score": 8,
+      "description": "How this relates to the project",
+      "opportunities": "Potential positive outcomes",
+      "threats": "Potential risks or challenges"
+    }
+  }
+}
+```
+
+#### Thread Analysis (`type: "thread"`)
+
+```json
+{
+  "type": "thread",
+  "simple": {
+    "title": "Brief descriptive title of the thread",
+    "summary": "Concise summary of the main tweet",
+    "viewpoints": "Key perspectives and opinions in the thread",
+    "why_matters": "Why this thread is relevant and important"
+  },
+  "expert": {
+    "summary": "In-depth expert analysis of the main tweet",
+    "impact_level": "low|medium|high",
+    "project_impact": {
+      "relevance_score": 9,
+      "description": "How this relates to the project",
+      "opportunities": "Potential positive outcomes",
+      "threats": "Potential risks or challenges"
+    }
+  },
+  "thread_data": {
+    "total_replies": 45,
+    "max_depth": 3,
+    "sentiment": {
+      "positive": 25,
+      "negative": 8,
+      "neutral": 12,
+      "mixed": 0
+    },
+    "key_reactions": ["Array of key reaction summaries"],
+    "community_pulse": "Overall community sentiment and reaction",
+    "controversial_points": ["Array of controversial discussion points"],
+    "consensus_areas": ["Array of areas where community agrees"],
+    "disagreement_areas": ["Array of areas with disagreement"]
   }
 }
 ```
@@ -495,12 +579,98 @@ interface AnalysisResult {
 }
 ```
 
+## Telegram Bot Integration
+
+X Parser includes a Telegram bot that automatically sends formatted notifications for relevant tweets with AI analysis.
+
+### Bot Features
+
+- **Automatic Notifications**: Sends analyzed tweets to configured Telegram channels
+- **Formatted Messages**: Clean, structured presentation of tweet analysis
+- **Language Support**: Supports both English and Russian analysis display
+- **Thread Analysis**: Includes community reactions and sentiment for thread discussions
+
+### Message Format
+
+The bot sends two types of messages based on the analysis:
+
+#### Single Tweet Message
+
+```
+🔥 New relevant tweet!
+
+👤 @vitalik (Vitalik Buterin)
+📅 25.01.2024 13:00
+
+📝 Original:
+The future of Ethereum scalability lies in rollups...
+
+🌐 Translation: (if Russian analysis)
+The future of Ethereum scalability lies in rollups...
+
+🧠 Author's Tweet Analysis:
+📌 Main point: Vitalik explains Ethereum scaling solutions
+📄 Summary: Technical discussion of rollup implementation
+📚 Terms: Rollups - Layer 2 scaling solutions that...
+❓ Why it matters: Critical for understanding Ethereum's future
+
+🎯 Expert Tweet Analysis:
+📊 Summary: Deep analysis of Ethereum's scaling roadmap...
+⚡ Impact level: high
+🎯 Relevance: 9/10
+📈 Opportunities: New scaling opportunities for dApps
+⚠️ Threats: Potential centralization concerns
+
+🤖 Metadata:
+• Relevance: 0.9/1.0
+• Type: Tweet
+• Categories: ethereum, scaling
+
+🔗 Link: https://x.com/vitalik/status/1234567890
+💾 Comments: 15 | 👍 1250 | 🔄 340
+```
+
+#### Thread Message (with Community Reactions)
+
+```
+🧵 Thread Reactions (45 replies):
+🌡️ Community is optimistic about scaling improvements but has concerns about complexity
+💭 Mood: 😊 Mostly positive (35/45)
+⚡ Debates: Centralization risks of rollup operators
+```
+
+### Configuration
+
+Configure the bot in your environment variables:
+
+```env
+# Telegram Bot Settings
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+TELEGRAM_LANGUAGE=ru
+```
+
+### Bot Commands
+
+The bot currently operates in notification mode only. Future versions may include interactive commands for:
+
+- `/status` - Check bot status
+- `/recent` - Get recent analyzed tweets
+- `/settings` - Configure notification preferences
+
 ## Examples
 
 ### Fetch Recent Ethereum Tweets
 
 ```bash
-curl "http://localhost:3000/api/tweets?filter=ethereum&limit=10"
+# Get most recent Ethereum tweets
+curl "http://localhost:3000/api/tweets?filter=ethereum&sort=newest&limit=10"
+
+# Get most liked Ethereum tweets
+curl "http://localhost:3000/api/tweets?filter=ethereum&sort=most_liked&limit=10"
+
+# Get oldest tweets (chronological order)
+curl "http://localhost:3000/api/tweets?filter=all&sort=oldest&limit=10"
 ```
 
 ### Analyze Tweet with Replies

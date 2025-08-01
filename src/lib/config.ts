@@ -96,10 +96,10 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     request_timeout_ms: 30000,
   },
   analysis: {
-    default_language: "en",
+    default_language: "ru",
     supported_languages: ["en", "ru"],
     batch_size: 10,
-    auto_analyze: true,
+    auto_analyze: false, // Disabled for Telegram bot - use manual analysis
   },
   ui: {
     tweets_per_page: 20,

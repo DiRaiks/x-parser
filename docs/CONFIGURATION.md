@@ -52,7 +52,7 @@ AI prompts for different analysis tasks - fully customizable for your specific u
     }
   },
   "analysis": {
-    "default_language": "en",
+    "default_language": "ru",
     "supported_languages": ["en", "ru"],
     "manual_analysis": true,
     "auto_analysis": false,
@@ -155,7 +155,7 @@ Configure AI analysis features and behavior:
 ```json
 {
   "analysis": {
-    "default_language": "en", // Default target language
+    "default_language": "ru", // Default target language
     "supported_languages": ["en", "ru"], // Available languages
     "manual_analysis": true, // Manual analysis mode
     "auto_analysis": false, // Disable automatic analysis

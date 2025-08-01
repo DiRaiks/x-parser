@@ -323,6 +323,8 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
+        // No auto-analysis - tweets will be analyzed manually via /batch-analyze
+
         // Add tweet to database
         await prisma.tweet.create({
           data: {
@@ -340,7 +342,7 @@ export async function POST(request: NextRequest) {
             categories: JSON.stringify(categories),
             savedAt: new Date(),
             isFavorite: false,
-            isProcessed: false, // Not AI analyzed yet
+            isProcessed: false, // Will be analyzed manually via /batch-analyze
           },
         });
 

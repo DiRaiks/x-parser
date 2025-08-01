@@ -37,6 +37,9 @@ model Tweet {
   isFavorite       Boolean  @default(false)
   isProcessed      Boolean  @default(false)
   
+  // Telegram bot tracking
+  botSentAt        DateTime?
+  
   @@map("tweets")
 }
 
